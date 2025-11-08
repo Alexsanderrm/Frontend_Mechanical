@@ -1,0 +1,48 @@
+import api from './api';
+
+export interface ResponseDTO<T> {
+  error: boolean;
+  mensaje: T;
+}
+
+export const reportesService = {
+  // Reporte 1: Lista de todas las órdenes
+  generarReporteOrdenes: async (): Promise<Blob> => {
+    const response = await api.get('/reportes/ordenes/pdf', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 2: Lista de todos los repuestos disponibles
+  generarReporteRepuestos: async (): Promise<Blob> => {
+    const response = await api.get('/reportes/repuestos/pdf', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 3: Lista de todos los servicios disponibles
+  generarReporteServicios: async (): Promise<Blob> => {
+    const response = await api.get('/reportes/servicios/pdf', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 4: Lista de mecánicos implícitos en una orden
+  generarReporteMecanicosPorOrden: async (idOrden: string): Promise<Blob> => {
+    const response = await api.get(`/reportes/mecanicos/${idOrden}/ordenes/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 5: Lista de órdenes del cliente
+  generarReporteOrdenesPorCliente: async (idCliente: string): Promise<Blob> => {
+    const response = await api.get(`/reportes/ordenes/${idCliente}/clientes/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+};
