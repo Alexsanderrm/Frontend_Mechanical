@@ -7,9 +7,11 @@ export interface Cliente {
   apellido1: string;
   apellido2?: string;
   email: string;
-  fechaRegistro: string;
   telefonos: Telefono[];
-  direccion: Direccion;
+  direccion: string;
+  barrio: string;
+  ciudad: string;
+  departamento: string;
 }
 
 export interface Telefono {
@@ -64,6 +66,12 @@ export const clientesService = {
 
   eliminarCliente: async (id: string): Promise<ResponseDTO<string>> => {
     const response = await api.delete(`/clientes/${id}`);
+    return response.data;
+  },
+
+  // Obtener todos los clientes
+  obtenerClientes: async (): Promise<ResponseDTO<Cliente[]>> => {
+    const response = await api.get('/clientes/all');
     return response.data;
   },
 

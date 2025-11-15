@@ -17,20 +17,26 @@ import {
   TextField,
   Grid,
   Card,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Remove as RemoveIcon, Phone as PhoneIcon } from '@mui/icons-material';
 import { clientesService, type Cliente, type CrearClienteDTO } from '../services/clientesService';
 
 const ClientesPage: React.FC = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [open, setOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<CrearClienteDTO>({
     nombre1: '',
     nombre2: '',
     apellido1: '',
     apellido2: '',
     email: '',
-    telefonos: [{ numero: '', tipo: 'CELULAR' }],
+    telefonos: [],
     direccion: '',
     barrio: '',
     ciudad: '',
@@ -43,26 +49,35 @@ const ClientesPage: React.FC = () => {
 
   const loadClientes = async () => {
     try {
-      // Por ahora usamos datos mock ya que no tenemos endpoint para listar todos
-      setClientes([]);
+      const response = await clientesService.obtenerClientes();
+      if (response.error) {
+        throw new Error('Error al obtener clientes');
+      }
+      setClientes(response.mensaje);
     } catch (error) {
       console.error('Error loading clientes:', error);
     }
   };
 
   const handleOpenDialog = () => {
+    setFormData(prev => ({
+      ...prev,
+      telefonos: [{ numero: '', tipo: 'CELULAR' }],
+    }));
     setOpen(true);
   };
 
   const handleCloseDialog = () => {
     setOpen(false);
+    setIsEditing(false);
+    setEditingId(null);
     setFormData({
       nombre1: '',
       nombre2: '',
       apellido1: '',
       apellido2: '',
       email: '',
-      telefonos: [{ numero: '', tipo: 'CELULAR' }],
+      telefonos: [],
       direccion: '',
       barrio: '',
       ciudad: '',
@@ -78,26 +93,68 @@ const ClientesPage: React.FC = () => {
         return;
       }
 
-      console.log('Enviando datos del cliente:', formData);
-      const response = await clientesService.crearCliente(formData);
+      // Validar que haya al menos un teléfono válido
+      const telefonosValidos = formData.telefonos.filter(tel => tel.numero.trim() !== '');
+      if (telefonosValidos.length === 0) {
+        alert('Por favor agrega al menos un teléfono válido');
+        return;
+      }
+
+      // Usar todos los teléfonos (vacíos serán ignorados por el backend)
+      const formDataToSend = {
+        ...formData,
+      };
+
+      console.log('Enviando datos del cliente:', formDataToSend);
+
+      let response;
+      if (isEditing && editingId) {
+        response = await clientesService.actualizarCliente(editingId, formDataToSend);
+      } else {
+        response = await clientesService.crearCliente(formDataToSend);
+      }
+
       console.log('Respuesta del servidor:', response);
-      
+
       if (response.error) {
         throw new Error(response.mensaje);
       }
-      
+
       handleCloseDialog();
       loadClientes();
-      alert('Cliente creado exitosamente');
+      alert(isEditing ? 'Cliente actualizado exitosamente' : 'Cliente creado exitosamente');
     } catch (error) {
-      console.error('Error creating cliente:', error);
-      alert('Error al crear el cliente: ' + (error as any)?.message || 'Error desconocido');
+      console.error('Error saving cliente:', error);
+      alert('Error al guardar el cliente: ' + (error as any)?.message || 'Error desconocido');
     }
   };
 
-  const handleEditar = (cliente: Cliente) => {
-    // TODO: Implementar edición
-    console.log('Editar cliente:', cliente);
+  const handleEditar = async (cliente: Cliente) => {
+    try {
+      const response = await clientesService.obtenerCliente(cliente.id);
+      if (response.error) {
+        throw new Error('Error al obtener cliente');
+      }
+      const clienteData = response.mensaje;
+      setFormData({
+        nombre1: clienteData.nombre1,
+        nombre2: clienteData.nombre2 || '',
+        apellido1: clienteData.apellido1,
+        apellido2: clienteData.apellido2 || '',
+        email: clienteData.email,
+        telefonos: clienteData.telefonos.length > 0 ? clienteData.telefonos : [{ numero: '', tipo: 'CELULAR' }],
+        direccion: clienteData.direccion,
+        barrio: clienteData.barrio,
+        ciudad: clienteData.ciudad,
+        departamento: clienteData.departamento,
+      });
+      setIsEditing(true);
+      setEditingId(cliente.id);
+      setOpen(true);
+    } catch (error) {
+      console.error('Error loading cliente for edit:', error);
+      alert('Error al cargar datos del cliente para editar');
+    }
   };
 
   const handleEliminar = async (id: string) => {
@@ -115,6 +172,29 @@ const ClientesPage: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleAddTelefono = () => {
+    setFormData(prev => ({
+      ...prev,
+      telefonos: [...prev.telefonos, { numero: '', tipo: 'CELULAR' }],
+    }));
+  };
+
+  const handleRemoveTelefono = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      telefonos: prev.telefonos.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleTelefonoChange = (index: number, field: 'numero' | 'tipo', value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      telefonos: prev.telefonos.map((tel, i) =>
+        i === index ? { ...tel, [field]: value } : tel
+      ),
     }));
   };
 
@@ -151,38 +231,61 @@ const ClientesPage: React.FC = () => {
         </Button>
       </Box>
 
-      {/* Tabla simple */}
-      <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+      {/* Tabla de clientes */}
+      <TableContainer component={Paper} sx={{
+        width: '100%',
+        overflowX: 'auto',
+        maxHeight: '70vh',
+        '&::-webkit-scrollbar': {
+          height: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          backgroundColor: 'rgba(0,0,0,0.1)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: 'rgba(139, 92, 246, 0.3)',
+          borderRadius: '4px',
+          '&:hover': {
+            backgroundColor: 'rgba(139, 92, 246, 0.5)',
+          }
+        }
+      }}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>ID</TableCell>
-              <TableCell>Nombre</TableCell>
+              <TableCell>Nombre Completo</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>Teléfono</TableCell>
+              <TableCell>Teléfonos</TableCell>
+              <TableCell>Dirección</TableCell>
               <TableCell>Ciudad</TableCell>
+              <TableCell>Departamento</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {clientes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} sx={{ textAlign: 'center', py: 4, color: '#A1A1AA' }}>
+                <TableCell colSpan={8} sx={{ textAlign: 'center', py: 4, color: '#A1A1AA' }}>
                   No hay clientes registrados
                 </TableCell>
               </TableRow>
             ) : (
               clientes.map((cliente) => (
                 <TableRow key={cliente.id}>
-                  <TableCell sx={{ color: '#FFFFFF' }}>{cliente.id}</TableCell>
-                  <TableCell sx={{ color: '#FFFFFF' }}>
-                    {`${cliente.nombre1} ${cliente.apellido1}`}
+                  <TableCell sx={{ color: '#0D0D0D' }}>{cliente.id}</TableCell>
+                  <TableCell sx={{ color: '#0D0D0D' }}>
+                    {`${cliente.nombre1}${cliente.nombre2 ? ' ' + cliente.nombre2 : ''} ${cliente.apellido1}${cliente.apellido2 ? ' ' + cliente.apellido2 : ''}`}
                   </TableCell>
-                  <TableCell sx={{ color: '#FFFFFF' }}>{cliente.email}</TableCell>
-                  <TableCell sx={{ color: '#FFFFFF' }}>
-                    {cliente.telefonos[0]?.numero || 'N/A'}
+                  <TableCell sx={{ color: '#0D0D0D' }}>{cliente.email}</TableCell>
+                  <TableCell sx={{ color: '#0D0D0D' }}>
+                    {cliente.telefonos.map(tel => tel.numero).join(', ') || 'N/A'}
                   </TableCell>
-                  <TableCell sx={{ color: '#FFFFFF' }}>{cliente.direccion.ciudad}</TableCell>
+                  <TableCell sx={{ color: '#0D0D0D' }}>
+                    {cliente.direccion}{cliente.barrio ? `, ${cliente.barrio}` : ''}
+                  </TableCell>
+                  <TableCell sx={{ color: '#0D0D0D' }}>{cliente.ciudad}</TableCell>
+                  <TableCell sx={{ color: '#0D0D0D' }}>{cliente.departamento}</TableCell>
                   <TableCell>
                     <Button
                       size="small"
@@ -221,7 +324,7 @@ const ClientesPage: React.FC = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Crear Nuevo Cliente</DialogTitle>
+        <DialogTitle>{isEditing ? 'Editar Cliente' : 'Crear Nuevo Cliente'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
@@ -268,17 +371,59 @@ const ClientesPage: React.FC = () => {
                 required
               />
             </Grid>
+            {/* Teléfonos */}
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Teléfono"
-                value={formData.telefonos[0].numero}
-                onChange={(e) => setFormData(prev => ({
-                  ...prev,
-                  telefonos: [{ ...prev.telefonos[0], numero: e.target.value }],
-                }))}
-                required
-              />
+              <Typography variant="h6" sx={{ mb: 2, color: '#8B5CF6' }}>
+                <PhoneIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Teléfonos
+              </Typography>
+              {formData.telefonos.map((telefono, index) => (
+                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <TextField
+                    fullWidth
+                    label={`Teléfono ${index + 1}`}
+                    value={telefono.numero}
+                    onChange={(e) => handleTelefonoChange(index, 'numero', e.target.value)}
+                    sx={{ mr: 2 }}
+                  />
+                  <FormControl sx={{ minWidth: 120, mr: 2 }}>
+                    <InputLabel>Tipo</InputLabel>
+                    <Select
+                      value={telefono.tipo}
+                      label="Tipo"
+                      onChange={(e) => handleTelefonoChange(index, 'tipo', e.target.value)}
+                    >
+                      <MenuItem value="CELULAR">Celular</MenuItem>
+                      <MenuItem value="FIJO">Fijo</MenuItem>
+                      <MenuItem value="TRABAJO">Trabajo</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleRemoveTelefono(index)}
+                    disabled={formData.telefonos.length <= 1}
+                    sx={{ minWidth: 'auto', px: 2 }}
+                  >
+                    <RemoveIcon />
+                  </Button>
+                </Box>
+              ))}
+              <Button
+                variant="outlined"
+                onClick={handleAddTelefono}
+                startIcon={<AddIcon />}
+                sx={{
+                  borderColor: '#8B5CF6',
+                  color: '#8B5CF6',
+                  '&:hover': {
+                    borderColor: '#A855F7',
+                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                  }
+                }}
+              >
+                Agregar Teléfono
+              </Button>
             </Grid>
             <Grid item xs={12}>
               <TextField
@@ -320,7 +465,7 @@ const ClientesPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">Crear</Button>
+          <Button onClick={handleSubmit} variant="contained">{isEditing ? 'Actualizar' : 'Crear'}</Button>
         </DialogActions>
       </Dialog>
     </Box>
