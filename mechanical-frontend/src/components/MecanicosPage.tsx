@@ -16,29 +16,49 @@ import {
   DialogActions,
   TextField,
   Grid,
-  FormControl,
-  InputLabel,
   Select,
   MenuItem,
+  InputLabel,
+  FormControl,
   Chip,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { mecanicosService } from '../services/mecanicosService';
+import type { Mecanico, CrearMecanicoDTO } from '../services/mecanicosService';
+
+const especializaciones = [
+  'MECANICA_GENERAL',
+  'ELECTRICIDAD_AUTOMOTRIZ',
+  'INYECCION_ELECTRONICA',
+  'FRENOS',
+  'SUSPENSION_Y_DIRECCION',
+  'TRANSMISION',
+  'AIRE_ACONDICIONADO',
+  'SISTEMA_DE_ENFRIAMIENTO',
+  'DIAGNOSTICO_COMPUTARIZADO',
+  'LATONERIA_Y_PINTURA',
+  'SISTEMA_DE_ESCAPE',
+  'MOTOR_GASOLINA',
+  'MOTOR_DIESEL',
+  'ELECTRONICA_DE_BORDO',
+  'ALINEACION_Y_BALANCEO',
+];
+
 
 const MecanicosPage: React.FC = () => {
-  const [mecanicos, setMecanicos] = useState<any[]>([]);
+  const [mecanicos, setMecanicos] = useState<Mecanico[]>([]);
   const [open, setOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedMecanicoId, setSelectedMecanicoId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     nombre1: '',
     nombre2: '',
     apellido1: '',
     apellido2: '',
     email: '',
-    telefono: '',
-    especialidad: '',
-    rol: 'MECANICO',
+    experiencia: '',
     salario: '',
-    experiencia: 0,
+    especializacion: [] as string[],
   });
 
   useEffect(() => {
@@ -47,8 +67,11 @@ const MecanicosPage: React.FC = () => {
 
   const loadMecanicos = async () => {
     try {
-      // Por ahora usamos datos mock
-      setMecanicos([]);
+      const response = await mecanicosService.listarMecanicos();
+      if (response.error) {
+        throw new Error('Error al obtener mecánicos');
+      }
+      setMecanicos(response.mensaje);
     } catch (error) {
       console.error('Error loading mecanicos:', error);
     }
@@ -60,42 +83,59 @@ const MecanicosPage: React.FC = () => {
 
   const handleCloseDialog = () => {
     setOpen(false);
+    setIsEditing(false);
+    setSelectedMecanicoId(null);
     setFormData({
       nombre1: '',
       nombre2: '',
       apellido1: '',
       apellido2: '',
       email: '',
-      telefono: '',
-      especialidad: '',
-      rol: 'MECANICO',
+      experiencia: '',
       salario: '',
-      experiencia: 0,
+      especializacion: [],
     });
   };
 
   const handleSubmit = async () => {
     try {
-      await mecanicosService.crearMecanico({
+      const mecanicoData: CrearMecanicoDTO = {
         nombre1: formData.nombre1,
-        nombre2: formData.nombre2,
+        nombre2: formData.nombre2 || undefined,
         apellido1: formData.apellido1,
-        apellido2: formData.apellido2,
+        apellido2: formData.apellido2 || undefined,
         email: formData.email,
-        experiencia: parseInt(formData.experiencia.toString()),
-        especializacion: [], // TODO: Implementar selección múltiple
-        estado: 'ACTIVO',
-      });
+        experiencia: parseInt(formData.experiencia),
+        salario: parseFloat(formData.salario),
+        especializacion: formData.especializacion,
+      };
+
+      if (isEditing && selectedMecanicoId) {
+        await mecanicosService.actualizarMecanico(selectedMecanicoId, mecanicoData);
+      } else {
+        await mecanicosService.crearMecanico(mecanicoData);
+      }
       handleCloseDialog();
       loadMecanicos();
     } catch (error) {
-      console.error('Error creating mecanico:', error);
+      console.error('Error saving mecanico:', error);
     }
   };
 
-  const handleEditar = (mecanico: any) => {
-    // TODO: Implementar edición
-    console.log('Editar mecanico:', mecanico);
+  const handleEditar = async (mecanico: Mecanico) => {
+    setSelectedMecanicoId(mecanico.id);
+    setIsEditing(true);
+    setFormData({
+      nombre1: mecanico.nombre1,
+      nombre2: mecanico.nombre2 || '',
+      apellido1: mecanico.apellido1,
+      apellido2: mecanico.apellido2 || '',
+      email: mecanico.email,
+      experiencia: mecanico.experiencia.toString(),
+      salario: mecanico.salario.toString(),
+      especializacion: mecanico.especializacion,
+    });
+    setOpen(true);
   };
 
   const handleEliminar = async (id: string) => {
@@ -109,20 +149,11 @@ const MecanicosPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: string, value: string | number) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,
     }));
-  };
-
-  const getRolColor = (rol: string) => {
-    switch (rol) {
-      case 'JEFE_TALLER': return 'error';
-      case 'MECANICO': return 'primary';
-      case 'AYUDANTE': return 'warning';
-      default: return 'default';
-    }
   };
 
   return (
@@ -144,41 +175,61 @@ const MecanicosPage: React.FC = () => {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Email</TableCell>
-              <TableCell>Teléfono</TableCell>
-              <TableCell>Especialidad</TableCell>
-              <TableCell>Rol</TableCell>
+              <TableCell>Experiencia</TableCell>
               <TableCell>Salario</TableCell>
+              <TableCell>Especialización</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {mecanicos.map((mecanico) => (
               <TableRow key={mecanico.id}>
-                <TableCell>{mecanico.id}</TableCell>
-                <TableCell>{`${mecanico.nombre1} ${mecanico.apellido1}`}</TableCell>
+                <TableCell>{`${mecanico.nombre1} ${mecanico.nombre2 || ''} ${mecanico.apellido1} ${mecanico.apellido2 || ''}`}</TableCell>
                 <TableCell>{mecanico.email}</TableCell>
-                <TableCell>{mecanico.telefono}</TableCell>
-                <TableCell>{mecanico.especialidad}</TableCell>
+                <TableCell>{mecanico.experiencia}</TableCell>
+                <TableCell>{mecanico.salario}</TableCell>
                 <TableCell>
-                  <Chip
-                    label={mecanico.rol}
-                    color={getRolColor(mecanico.rol)}
-                    size="small"
-                  />
+                  {mecanico.especializacion.map((esp) => (
+                    <Chip key={esp} label={esp} size="small" sx={{ mr: 0.5 }} />
+                  ))}
                 </TableCell>
-                <TableCell>${mecanico.salario}</TableCell>
                 <TableCell>
-                  <Button size="small" onClick={() => handleEditar(mecanico)}>Editar</Button>
-                  <Button size="small" color="error" onClick={() => handleEliminar(mecanico.id)}>Eliminar</Button>
+                  <Button
+                    size="small"
+                    onClick={() => handleEditar(mecanico)}
+                    sx={{
+                      color: '#8B5CF6',
+                      border: '1px solid #8B5CF6',
+                      '&:hover': {
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)'
+                      }
+                    }}
+                  >
+                    ⚡ Editar
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => handleEliminar(mecanico.id)}
+                    sx={{
+                      color: '#A855F7',
+                      border: '1px solid #A855F7',
+                      '&:hover': {
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
+                      }
+                    }}
+                  >
+                    💥 Eliminar
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
             {mecanicos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body1" color="textSecondary">
                     No hay mecánicos registrados
                   </Typography>
@@ -190,13 +241,13 @@ const MecanicosPage: React.FC = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Crear Nuevo Mecánico</DialogTitle>
+        <DialogTitle>{isEditing ? 'Editar Mecánico' : 'Crear Nuevo Mecánico'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Primer Nombre"
+                label="Nombre 1"
                 value={formData.nombre1}
                 onChange={(e) => handleInputChange('nombre1', e.target.value)}
                 required
@@ -205,7 +256,7 @@ const MecanicosPage: React.FC = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Segundo Nombre"
+                label="Nombre 2"
                 value={formData.nombre2}
                 onChange={(e) => handleInputChange('nombre2', e.target.value)}
               />
@@ -213,7 +264,7 @@ const MecanicosPage: React.FC = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Primer Apellido"
+                label="Apellido 1"
                 value={formData.apellido1}
                 onChange={(e) => handleInputChange('apellido1', e.target.value)}
                 required
@@ -222,12 +273,12 @@ const MecanicosPage: React.FC = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Segundo Apellido"
+                label="Apellido 2"
                 value={formData.apellido2}
                 onChange={(e) => handleInputChange('apellido2', e.target.value)}
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Email"
@@ -240,46 +291,14 @@ const MecanicosPage: React.FC = () => {
             <Grid item xs={6}>
               <TextField
                 fullWidth
-                label="Teléfono"
-                value={formData.telefono}
-                onChange={(e) => handleInputChange('telefono', e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                label="Especialidad"
-                value={formData.especialidad}
-                onChange={(e) => handleInputChange('especialidad', e.target.value)}
-                required
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
                 label="Experiencia (años)"
                 type="number"
                 value={formData.experiencia}
-                onChange={(e) => handleInputChange('experiencia', parseInt(e.target.value) || 0)}
+                onChange={(e) => handleInputChange('experiencia', e.target.value)}
                 required
               />
             </Grid>
             <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>Rol</InputLabel>
-                <Select
-                  value={formData.rol}
-                  label="Rol"
-                  onChange={(e) => handleInputChange('rol', e.target.value)}
-                >
-                  <MenuItem value="JEFE_TALLER">Jefe de Taller</MenuItem>
-                  <MenuItem value="MECANICO">Mecánico</MenuItem>
-                  <MenuItem value="AYUDANTE">Ayudante</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
               <TextField
                 fullWidth
                 label="Salario"
@@ -287,14 +306,36 @@ const MecanicosPage: React.FC = () => {
                 value={formData.salario}
                 onChange={(e) => handleInputChange('salario', e.target.value)}
                 required
-                helperText="Salario mensual en pesos"
               />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>Especialización</InputLabel>
+                <Select
+                  multiple
+                  value={formData.especializacion}
+                  onChange={(e) => handleInputChange('especializacion', e.target.value as string[])}
+                  renderValue={(selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {selected.map((value) => (
+                        <Chip key={value} label={value} size="small" />
+                      ))}
+                    </Box>
+                  )}
+                >
+                  {especializaciones.map((esp) => (
+                    <MenuItem key={esp} value={esp}>
+                      {esp}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">Crear Mecánico</Button>
+          <Button onClick={handleSubmit} variant="contained">{isEditing ? 'Actualizar' : 'Crear'}</Button>
         </DialogActions>
       </Dialog>
     </Box>

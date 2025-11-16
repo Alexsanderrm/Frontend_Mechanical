@@ -8,8 +8,8 @@ export interface Mecanico {
   apellido2?: string;
   email: string;
   experiencia: number;
+  salario: number;
   especializacion: string[];
-  estado: string;
 }
 
 export interface CrearMecanicoDTO {
@@ -19,8 +19,8 @@ export interface CrearMecanicoDTO {
   apellido2?: string;
   email: string;
   experiencia: number;
+  salario: number;
   especializacion: string[];
-  estado: string;
 }
 
 export interface EstadisticasMecanico {
