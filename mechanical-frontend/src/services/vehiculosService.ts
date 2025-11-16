@@ -5,19 +5,17 @@ export interface Vehiculo {
   placa: string;
   marca: string;
   modelo: string;
-  anio: string;
+  anio: number;
   color: string;
-  tipoVehiculo: string;
-  idCliente: string;
+  idPropietario: string;
 }
 
 export interface CrearVehiculoDTO {
   placa: string;
   marca: string;
   modelo: string;
-  anio: string;
+  anio: number;
   color: string;
-  tipoVehiculo: string;
 }
 
 export interface ResponseDTO<T> {

@@ -16,10 +16,6 @@ import {
   DialogActions,
   TextField,
   Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { vehiculosService } from '../services/vehiculosService';
@@ -27,13 +23,14 @@ import { vehiculosService } from '../services/vehiculosService';
 const VehiculosPage: React.FC = () => {
   const [vehiculos, setVehiculos] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedVehiculoId, setSelectedVehiculoId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     placa: '',
     marca: '',
     modelo: '',
     anio: '',
     color: '',
-    tipoVehiculo: 'AUTOMOVIL',
     idCliente: '',
   });
 
@@ -43,8 +40,11 @@ const VehiculosPage: React.FC = () => {
 
   const loadVehiculos = async () => {
     try {
-      // Por ahora usamos datos mock
-      setVehiculos([]);
+      const response = await vehiculosService.listarVehiculos();
+      if (response.error) {
+        throw new Error('Error al obtener vehículos');
+      }
+      setVehiculos(response.mensaje);
     } catch (error) {
       console.error('Error loading vehiculos:', error);
     }
@@ -56,43 +56,76 @@ const VehiculosPage: React.FC = () => {
 
   const handleCloseDialog = () => {
     setOpen(false);
+    setIsEditing(false);
+    setSelectedVehiculoId(null);
     setFormData({
       placa: '',
       marca: '',
       modelo: '',
       anio: '',
       color: '',
-      tipoVehiculo: 'AUTOMOVIL',
       idCliente: '',
     });
   };
 
   const handleSubmit = async () => {
+    const idClienteTrimmed = formData.idCliente.trim();
+    if (!idClienteTrimmed) {
+      alert('El ID del cliente es requerido');
+      return;
+    }
     try {
-      await vehiculosService.crearVehiculo(formData.idCliente, {
-        placa: formData.placa,
-        marca: formData.marca,
-        modelo: formData.modelo,
-        anio: formData.anio,
-        color: formData.color,
-        tipoVehiculo: formData.tipoVehiculo,
-      });
+      if (isEditing && selectedVehiculoId) {
+        await vehiculosService.actualizarVehiculo(selectedVehiculoId, idClienteTrimmed, {
+          placa: formData.placa,
+          anio: parseInt(formData.anio),
+          color: formData.color,
+          modelo: formData.modelo,
+          marca: formData.marca,
+        });
+      } else {
+        await vehiculosService.crearVehiculo(idClienteTrimmed, {
+          placa: formData.placa,
+          anio: parseInt(formData.anio),
+          color: formData.color,
+          modelo: formData.modelo,
+          marca: formData.marca,
+        });
+      }
       handleCloseDialog();
       loadVehiculos();
     } catch (error) {
-      console.error('Error creating vehiculo:', error);
+      console.error('Error saving vehiculo:', error);
     }
   };
 
-  const handleEditar = (vehiculo: any) => {
-    // TODO: Implementar edición
-    console.log('Editar vehiculo:', vehiculo);
+  const handleEditar = async (vehiculo: any) => {
+    setSelectedVehiculoId(vehiculo.id);
+    setIsEditing(true);
+    try {
+      const response = await vehiculosService.obtenerVehiculo(vehiculo.id);
+      if (response.error) {
+        throw new Error('Error obteniendo vehículo');
+      }
+      const v = response.mensaje;
+      setFormData({
+        placa: v.placa,
+        marca: v.marca,
+        modelo: v.modelo,
+        anio: v.anio.toString(),
+        color: v.color,
+        idCliente: v.idPropietario,
+      });
+    } catch (error) {
+      console.error('Error loading vehiculo:', error);
+    }
+    setOpen(true);
   };
 
-  const handleEliminar = async (placa: string) => {
+  const handleEliminar = async (id: string) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este vehículo?')) {
       try {
-        await vehiculosService.eliminarVehiculo(placa);
+        await vehiculosService.eliminarVehiculo(id);
         loadVehiculos();
       } catch (error) {
         console.error('Error deleting vehiculo:', error);
@@ -126,35 +159,59 @@ const VehiculosPage: React.FC = () => {
         <Table sx={{ minWidth: 650 }}>
           <TableHead>
             <TableRow>
+              <TableCell>ID del Propietario</TableCell>
               <TableCell>Placa</TableCell>
               <TableCell>Marca</TableCell>
               <TableCell>Modelo</TableCell>
               <TableCell>Año</TableCell>
               <TableCell>Color</TableCell>
-              <TableCell>Tipo</TableCell>
-              <TableCell>Cliente</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {vehiculos.map((vehiculo) => (
               <TableRow key={vehiculo.placa}>
+                <TableCell sx={{ color: '#0D0D0D' }}>{vehiculo.idPropietario}</TableCell>
                 <TableCell>{vehiculo.placa}</TableCell>
                 <TableCell>{vehiculo.marca}</TableCell>
                 <TableCell>{vehiculo.modelo}</TableCell>
                 <TableCell>{vehiculo.anio}</TableCell>
                 <TableCell>{vehiculo.color}</TableCell>
-                <TableCell>{vehiculo.tipoVehiculo}</TableCell>
-                <TableCell>{vehiculo.idCliente}</TableCell>
                 <TableCell>
-                  <Button size="small" onClick={() => handleEditar(vehiculo)}>Editar</Button>
-                  <Button size="small" color="error" onClick={() => handleEliminar(vehiculo.placa)}>Eliminar</Button>
+                  <Button
+                    size="small"
+                    onClick={() => handleEditar(vehiculo)}
+                    sx={{
+                      color: '#8B5CF6',
+                      border: '1px solid #8B5CF6',
+                      '&:hover': {
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)'
+                      }
+                    }}
+                  >
+                    ⚡ Editar
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => handleEliminar(vehiculo.id)}
+                    sx={{
+                      color: '#A855F7',
+                      border: '1px solid #A855F7',
+                      '&:hover': {
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
+                      }
+                    }}
+                  >
+                    💥 Eliminar
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
             {vehiculos.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                   <Typography variant="body1" color="textSecondary">
                     No hay vehículos registrados
                   </Typography>
@@ -166,7 +223,7 @@ const VehiculosPage: React.FC = () => {
       </TableContainer>
 
       <Dialog open={open} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>Crear Nuevo Vehículo</DialogTitle>
+        <DialogTitle>{isEditing ? 'Editar Vehículo' : 'Crear Nuevo Vehículo'}</DialogTitle>
         <DialogContent>
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
@@ -215,21 +272,6 @@ const VehiculosPage: React.FC = () => {
                 required
               />
             </Grid>
-            <Grid item xs={6}>
-              <FormControl fullWidth>
-                <InputLabel>Tipo de Vehículo</InputLabel>
-                <Select
-                  value={formData.tipoVehiculo}
-                  label="Tipo de Vehículo"
-                  onChange={(e) => handleInputChange('tipoVehiculo', e.target.value)}
-                >
-                  <MenuItem value="AUTOMOVIL">Automóvil</MenuItem>
-                  <MenuItem value="MOTOCICLETA">Motocicleta</MenuItem>
-                  <MenuItem value="CAMIONETA">Camioneta</MenuItem>
-                  <MenuItem value="CAMION">Camión</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -244,7 +286,7 @@ const VehiculosPage: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained">Crear</Button>
+          <Button onClick={handleSubmit} variant="contained">{isEditing ? 'Actualizar' : 'Crear'}</Button>
         </DialogActions>
       </Dialog>
     </Box>
