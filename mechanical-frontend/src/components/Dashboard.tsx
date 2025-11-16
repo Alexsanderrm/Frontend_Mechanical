@@ -16,6 +16,7 @@ import {
   Settings as SettingsIcon,
   Engineering as EngineeringIcon,
   Assessment as AssessmentIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { ordenesService, type Orden } from '../services/ordenesService';
@@ -171,6 +172,25 @@ const Dashboard: React.FC = () => {
               }}
             >
               Gestionar Vehículos
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<BusinessIcon />}
+              onClick={() => navigate('/proveedores')}
+              sx={{
+                py: 2,
+                borderColor: '#f59e0b',
+                color: '#f59e0b',
+                '&:hover': {
+                  borderColor: '#d97706',
+                  backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                },
+              }}
+            >
+              Gestionar Proveedores
             </Button>
           </Grid>
           <Grid item xs={12} sm={6} md={4}>

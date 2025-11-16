@@ -9,6 +9,7 @@ import Dashboard from './components/Dashboard';
 import ClientesPage from './components/ClientesPage';
 import OrdenesPage from './components/OrdenesPage';
 import VehiculosPage from './components/VehiculosPage';
+import ProveedoresPage from './components/ProveedoresPage';
 import ServiciosPage from './components/ServiciosPage';
 import MecanicosPage from './components/MecanicosPage';
 import FacturasPage from './components/FacturasPage';
@@ -281,6 +282,21 @@ function App() {
                 }}>
                   <Container maxWidth="lg" sx={{ px: 3, py: 4 }}>
                     <VehiculosPage />
+                  </Container>
+                </Box>
+              </>
+            } />
+            <Route path="/proveedores" element={
+              <>
+                <Navbar onMenuClick={() => setSidebarOpen(true)} />
+                <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+                <Box sx={{
+                  minHeight: '100vh',
+                  backgroundColor: '#F2F2F2',
+                  pt: '80px',
+                }}>
+                  <Container maxWidth="lg" sx={{ px: 3, py: 4 }}>
+                    <ProveedoresPage />
                   </Container>
                 </Box>
               </>
