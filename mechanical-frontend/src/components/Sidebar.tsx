@@ -21,6 +21,7 @@ import {
   Home as HomeIcon,
   Settings as SettingsIcon,
   Business as BusinessIcon,
+  Inventory as InventoryIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -55,6 +56,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       text: 'Proveedores',
       icon: <BusinessIcon />,
       path: '/proveedores',
+    },
+    {
+      text: 'Repuestos',
+      icon: <InventoryIcon />,
+      path: '/repuestos',
     },
     {
       text: 'Servicios',

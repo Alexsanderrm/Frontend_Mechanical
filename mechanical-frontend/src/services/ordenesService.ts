@@ -3,17 +3,17 @@ import api from './api';
 export interface Orden {
   id: string;
   descripcion: string;
+  fechaIngreso: string | null;
+  fechaSalida: string | null;
   estado: string;
-  fechaCreacion: string;
-  fechaIngreso?: string;
-  fechaSalida?: string;
-  idCliente: string;
-  idVehiculo: string;
+  diagnosticoInicial: string | null;
+  diagnosticoFinal: string | null;
+  placa: string;
 }
 
 export interface CrearOrdenDTO {
   descripcion: string;
-  fechaIngreso: string;
+  fechaIngreso?: string;
 }
 
 export interface ResponseDTO<T> {
@@ -37,8 +37,8 @@ export interface ServicioMecanicoDTO {
 }
 
 export const ordenesService = {
-  crearOrden: async (idCliente: string, orden: CrearOrdenDTO): Promise<ResponseDTO<string>> => {
-    const response = await api.post(`/ordenes/${idCliente}/vehiculo`, orden);
+  crearOrden: async (idVehiculo: string, orden: CrearOrdenDTO): Promise<ResponseDTO<string>> => {
+    const response = await api.post(`/ordenes/vehiculo/${idVehiculo}`, orden);
     return response.data;
   },
 
@@ -47,7 +47,7 @@ export const ordenesService = {
     return response.data;
   },
 
-  actualizarOrden: async (id: string, orden: Partial<CrearOrdenDTO>): Promise<ResponseDTO<string>> => {
+  actualizarOrden: async (id: string, orden: { fechaIngreso: string; fechaSalida?: string; descripcion: string }): Promise<ResponseDTO<string>> => {
     const response = await api.put(`/ordenes/${id}`, orden);
     return response.data;
   },
@@ -57,19 +57,24 @@ export const ordenesService = {
     return response.data;
   },
 
-  listarOrdenes: async (): Promise<ResponseDTO<Orden[]>> => {
+  obtenerTodasLasOrdenes: async (): Promise<ResponseDTO<Orden[]>> => {
     const response = await api.get('/ordenes');
     return response.data;
   },
 
+  listaOrdenesPorCliente: async (idCliente: string): Promise<ResponseDTO<Orden[]>> => {
+    const response = await api.get(`/ordenes/cliente/${idCliente}`);
+    return response.data;
+  },
+
   // Asignar mecánico a orden
-  asignarMecanico: async (idOrden: string, idMecanico: string, asignacion: AsignarMecanicoDTO): Promise<ResponseDTO<string>> => {
-    const response = await api.patch(`/ordenes/${idOrden}/mecanicos/${idMecanico}`, asignacion);
+  asignarMecanico: async (idOrden: string, idMecanico: string, rol: { rol: string }): Promise<ResponseDTO<string>> => {
+    const response = await api.post(`/ordenes/${idOrden}/mecanicos/${idMecanico}`, rol);
     return response.data;
   },
 
   // Eliminar mecánico de orden
-  eliminarMecanicoDeOrden: async (idOrden: string, idMecanico: string): Promise<ResponseDTO<string>> => {
+  eliminarMecanico: async (idOrden: string, idMecanico: string): Promise<ResponseDTO<string>> => {
     const response = await api.delete(`/ordenes/${idOrden}/mecanicos/${idMecanico}`);
     return response.data;
   },
@@ -87,25 +92,25 @@ export const ordenesService = {
   },
 
   // Obtener diagnóstico
-  obtenerDiagnostico: async (idOrden: string): Promise<ResponseDTO<any>> => {
+  obtenerDiagnostico: async (idOrden: string): Promise<ResponseDTO<DiagnosticoDTO>> => {
     const response = await api.get(`/ordenes/${idOrden}/diagnosticos`);
     return response.data;
   },
 
-  // Registrar servicio-mecánico en orden
-  registrarServicioMecanico: async (idOrden: string, idMecanico: string, idServicio: string, servicio: ServicioMecanicoDTO): Promise<ResponseDTO<string>> => {
-    const response = await api.post(`/ordenes/${idOrden}/mecanicos/${idMecanico}/servicios/${idServicio}`, servicio);
+  // Registrar servicio en orden
+  registrarServicio: async (idOrden: string, idMecanico: string, idServicio: string, detalle: ServicioMecanicoDTO): Promise<ResponseDTO<string>> => {
+    const response = await api.post(`/ordenes/${idOrden}/mecanicos/${idMecanico}/servicios/${idServicio}`, detalle);
     return response.data;
   },
 
-  // Actualizar detalle de servicio-mecánico
-  actualizarServicioMecanico: async (idOrden: string, idMecanico: string, idServicio: string, servicio: ServicioMecanicoDTO): Promise<ResponseDTO<string>> => {
-    const response = await api.put(`/ordenes/${idOrden}/mecanicos/${idMecanico}/servicios/${idServicio}`, servicio);
+  // Actualizar detalle de servicio
+  actualizarDetalleServicio: async (idOrden: string, idMecanico: string, idServicio: string, detalle: ServicioMecanicoDTO): Promise<ResponseDTO<string>> => {
+    const response = await api.put(`/ordenes/${idOrden}/mecanicos/${idMecanico}/servicios/${idServicio}`, detalle);
     return response.data;
   },
 
   // Obtener detalle de orden
-  obtenerDetalleOrden: async (idOrden: string): Promise<ResponseDTO<any>> => {
+  obtenerDetalleOrden: async (idOrden: string): Promise<ResponseDTO<any[]>> => {
     const response = await api.get(`/ordenes/${idOrden}/detalle`);
     return response.data;
   },

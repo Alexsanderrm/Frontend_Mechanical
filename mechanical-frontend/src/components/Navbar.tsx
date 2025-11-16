@@ -110,6 +110,23 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           </Button>
           <Button
             color="inherit"
+            onClick={() => navigate('/repuestos')}
+            sx={{
+              borderRadius: 6,
+              px: 2,
+              py: 1,
+              fontWeight: 500,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            Repuestos
+          </Button>
+          <Button
+            color="inherit"
             onClick={() => navigate('/servicios')}
             sx={{
               borderRadius: 6,
