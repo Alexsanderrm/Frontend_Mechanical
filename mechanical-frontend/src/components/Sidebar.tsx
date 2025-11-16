@@ -19,6 +19,7 @@ import {
   Receipt as ReceiptIcon,
   Assessment as AssessmentIcon,
   Home as HomeIcon,
+  Settings as SettingsIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -48,6 +49,11 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       text: 'Vehículos',
       icon: <CarIcon />,
       path: '/vehiculos',
+    },
+    {
+      text: 'Servicios',
+      icon: <SettingsIcon />,
+      path: '/servicios',
     },
     {
       text: 'Órdenes',

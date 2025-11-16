@@ -13,16 +13,20 @@ import {
   Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
+  Settings as SettingsIcon,
+  Engineering as EngineeringIcon,
+  Assessment as AssessmentIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { ordenesService, type Orden } from '../services/ordenesService';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [ordenes, setOrdenes] = useState<Orden[]>([]);
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     descripcion: '',
     estado: 'PENDIENTE',
-    prioridad: 'MEDIA',
     clienteId: '',
     vehiculoId: '',
   });
@@ -46,25 +50,17 @@ const Dashboard: React.FC = () => {
           id: '1',
           descripcion: 'Cambio de aceite y filtros',
           estado: 'EN_PROCESO',
-          prioridad: 'MEDIA',
           fechaCreacion: '2024-01-15',
-          fechaActualizacion: '2024-01-15',
-          cliente: { id: '1', nombre1: 'Juan', apellido1: 'Pérez' },
-          vehiculo: { id: '1', placa: 'ABC123', marca: 'Toyota', modelo: 'Corolla' },
-          mecanicos: [],
-          servicios: [],
+          idCliente: '1',
+          idVehiculo: '1',
         },
         {
           id: '2',
           descripcion: 'Reparación de frenos',
           estado: 'PENDIENTE',
-          prioridad: 'ALTA',
           fechaCreacion: '2024-01-14',
-          fechaActualizacion: '2024-01-14',
-          cliente: { id: '2', nombre1: 'María', apellido1: 'González' },
-          vehiculo: { id: '2', placa: 'XYZ789', marca: 'Honda', modelo: 'Civic' },
-          mecanicos: [],
-          servicios: [],
+          idCliente: '2',
+          idVehiculo: '2',
         },
       ]);
     } catch (error) {
@@ -133,6 +129,148 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
+      {/* Gestión Rápida */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" component="h2" sx={{ color: '#1A2A40', fontWeight: 600, mb: 3 }}>
+          Gestión Rápida
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<PeopleIcon />}
+              onClick={() => navigate('/clientes')}
+              sx={{
+                py: 2,
+                borderColor: '#42628C',
+                color: '#42628C',
+                '&:hover': {
+                  borderColor: '#253C59',
+                  backgroundColor: 'rgba(66, 98, 140, 0.1)',
+                },
+              }}
+            >
+              Gestionar Clientes
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<CarIcon />}
+              onClick={() => navigate('/vehiculos')}
+              sx={{
+                py: 2,
+                borderColor: '#059669',
+                color: '#059669',
+                '&:hover': {
+                  borderColor: '#047857',
+                  backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                },
+              }}
+            >
+              Gestionar Vehículos
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<SettingsIcon />}
+              onClick={() => navigate('/servicios')}
+              sx={{
+                py: 2,
+                borderColor: '#7c3aed',
+                color: '#7c3aed',
+                '&:hover': {
+                  borderColor: '#6d28d9',
+                  backgroundColor: 'rgba(124, 58, 237, 0.1)',
+                },
+              }}
+            >
+              Gestionar Servicios
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<BuildIcon />}
+              onClick={() => navigate('/ordenes')}
+              sx={{
+                py: 2,
+                borderColor: '#dc2626',
+                color: '#dc2626',
+                '&:hover': {
+                  borderColor: '#b91c1c',
+                  backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                },
+              }}
+            >
+              Gestionar Órdenes
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<EngineeringIcon />}
+              onClick={() => navigate('/mecanicos')}
+              sx={{
+                py: 2,
+                borderColor: '#ea580c',
+                color: '#ea580c',
+                '&:hover': {
+                  borderColor: '#c2410c',
+                  backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                },
+              }}
+            >
+              Gestionar Mecánicos
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<ReceiptIcon />}
+              onClick={() => navigate('/facturas')}
+              sx={{
+                py: 2,
+                borderColor: '#0891b2',
+                color: '#0891b2',
+                '&:hover': {
+                  borderColor: '#0e7490',
+                  backgroundColor: 'rgba(8, 145, 178, 0.1)',
+                },
+              }}
+            >
+              Gestionar Facturas
+            </Button>
+          </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<AssessmentIcon />}
+              onClick={() => navigate('/reportes')}
+              sx={{
+                py: 2,
+                borderColor: '#be185d',
+                color: '#be185d',
+                '&:hover': {
+                  borderColor: '#9d174d',
+                  backgroundColor: 'rgba(190, 24, 93, 0.1)',
+                },
+              }}
+            >
+              Ver Reportes
+            </Button>
+          </Grid>
+        </Grid>
+      </Box>
+
       {/* Órdenes Recientes */}
       <Box sx={{ mt: 6 }}>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -171,8 +309,8 @@ const Dashboard: React.FC = () => {
                 <TableRow key={orden.id} hover>
                   <TableCell>{orden.id}</TableCell>
                   <TableCell>{orden.descripcion}</TableCell>
-                  <TableCell>{orden.idCliente || 'Cliente'}</TableCell>
-                  <TableCell>{orden.idVehiculo || 'Vehículo'}</TableCell>
+                  <TableCell>Cliente {orden.idCliente}</TableCell>
+                  <TableCell>Vehículo {orden.idVehiculo}</TableCell>
                   <TableCell>
                     <Chip
                       label={orden.estado}
