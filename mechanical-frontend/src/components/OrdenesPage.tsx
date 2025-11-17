@@ -23,16 +23,18 @@ import {
   Chip,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
-import { ordenesService, type DiagnosticoDTO } from '../services/ordenesService';
+import { ordenesService, type DiagnosticoDTO, type RepuestoOrden } from '../services/ordenesService';
 import { mecanicosService } from '../services/mecanicosService';
 import { serviciosService } from '../services/serviciosService';
 import { vehiculosService } from '../services/vehiculosService';
+import { repuestosService } from '../services/repuestosService';
 
 const OrdenesPage: React.FC = () => {
   const [ordenes, setOrdenes] = useState<any[]>([]);
   const [mecanicos, setMecanicos] = useState<any[]>([]);
   const [servicios, setServicios] = useState<any[]>([]);
   const [vehiculos, setVehiculos] = useState<any[]>([]);
+  const [repuestos, setRepuestos] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [openAsignarMecanico, setOpenAsignarMecanico] = useState(false);
   const [openDiagnostico, setOpenDiagnostico] = useState(false);
@@ -40,6 +42,9 @@ const OrdenesPage: React.FC = () => {
   const [openRegistrarServicio, setOpenRegistrarServicio] = useState(false);
   const [openVerMecanicos, setOpenVerMecanicos] = useState(false);
   const [openEditarServicio, setOpenEditarServicio] = useState(false);
+  const [openAsignarRepuesto, setOpenAsignarRepuesto] = useState(false);
+  const [openVerRepuestos, setOpenVerRepuestos] = useState(false);
+  const [openEditarRepuesto, setOpenEditarRepuesto] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedOrdenId, setSelectedOrdenId] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -74,12 +79,26 @@ const OrdenesPage: React.FC = () => {
     idNuevoMecanico: '',
     idNuevoServicio: '',
   });
+  const [asignarRepuestoData, setAsignarRepuestoData] = useState({
+    idRepuesto: '',
+    idServicio: '',
+    cantidad: 1,
+  });
+  const [repuestosOrden, setRepuestosOrden] = useState<RepuestoOrden[]>([]);
+  const [currentServicioId, setCurrentServicioId] = useState<string>('');
+  const [currentOrdenId, setCurrentOrdenId] = useState<string>('');
+  const [editarRepuestoData, setEditarRepuestoData] = useState({
+    idRepuesto: '',
+    idServicio: '',
+    cantidad: 1,
+  });
 
   useEffect(() => {
     loadOrdenes();
     loadMecanicos();
     loadServicios();
     loadVehiculos();
+    loadRepuestos();
   }, []);
 
   const loadMecanicos = async () => {
@@ -106,6 +125,15 @@ const OrdenesPage: React.FC = () => {
       setVehiculos(response.mensaje || []);
     } catch (error) {
       console.error('Error loading vehiculos:', error);
+    }
+  };
+
+  const loadRepuestos = async () => {
+    try {
+      const response = await repuestosService.obtenerRepuestos();
+      setRepuestos(response.mensaje || []);
+    } catch (error) {
+      console.error('Error loading repuestos:', error);
     }
   };
 
@@ -194,6 +222,7 @@ const OrdenesPage: React.FC = () => {
 
   const handleVerDetalle = async (ordenId: string) => {
     setSelectedOrdenId(ordenId);
+    setCurrentOrdenId(ordenId); // Guardar el ID de la orden actual para el dialog de detalles
     try {
       const response = await ordenesService.obtenerDetalleOrden(ordenId);
       setDetalleData(response.mensaje || []);
@@ -254,6 +283,45 @@ const OrdenesPage: React.FC = () => {
     setOpenEditarServicio(true);
   };
 
+  const handleAsignarRepuesto = (ordenId: string, servicioId?: string) => {
+    setSelectedOrdenId(ordenId);
+    if (servicioId) {
+      setAsignarRepuestoData(prev => ({ ...prev, idServicio: servicioId }));
+    }
+    setOpenAsignarRepuesto(true);
+  };
+
+  const handleVerRepuestos = async (ordenId: string, detalle: any) => {
+    setSelectedOrdenId(ordenId);
+    // Buscar el idServicio por nombre ya que el backend no lo devuelve directamente
+    const servicioEncontrado = servicios.find(s => s.tipoServicio === detalle.tipo && s.descripcion === detalle.descripcion);
+    const idServicio = servicioEncontrado ? servicioEncontrado.id : '';
+
+    if (!idServicio) {
+      console.error('No se pudo encontrar el idServicio para:', detalle);
+      return;
+    }
+
+    setCurrentServicioId(idServicio); // Guardar el servicio actual
+
+    try {
+      const response = await ordenesService.obtenerRepuestosPorServicio(ordenId, idServicio);
+      setRepuestosOrden(response.mensaje || []);
+      setOpenVerRepuestos(true);
+    } catch (error) {
+      console.error('Error loading repuestos:', error);
+    }
+  };
+
+  const handleEditarRepuesto = (repuesto: RepuestoOrden) => {
+    setEditarRepuestoData({
+      idRepuesto: repuesto.idRepuesto || repuesto.id,
+      idServicio: currentServicioId,
+      cantidad: repuesto.cantidad,
+    });
+    setOpenEditarRepuesto(true);
+  };
+
   const handleRegistrarServicioSubmit = async () => {
     if (!selectedOrdenId || !registrarServicioData.idMecanico || !registrarServicioData.idServicio) return;
 
@@ -297,6 +365,58 @@ const OrdenesPage: React.FC = () => {
       setDetalleData(response.mensaje || []);
     } catch (error) {
       console.error('Error actualizando servicio:', error);
+    }
+  };
+
+  const handleAsignarRepuestoSubmit = async () => {
+    if (!selectedOrdenId || !asignarRepuestoData.idRepuesto || !asignarRepuestoData.idServicio) return;
+
+    try {
+      console.log('Asignando repuesto con datos:', asignarRepuestoData);
+      console.log('selectedOrdenId:', selectedOrdenId);
+      await ordenesService.asignarRepuesto(asignarRepuestoData.idRepuesto, asignarRepuestoData.idServicio, selectedOrdenId, { cantidad: asignarRepuestoData.cantidad });
+      setOpenAsignarRepuesto(false);
+      setAsignarRepuestoData({ idRepuesto: '', idServicio: '', cantidad: 1 });
+      setSelectedOrdenId('');
+      loadOrdenes();
+    } catch (error) {
+      console.error('Error asignando repuesto:', error);
+    }
+  };
+
+  const handleEditarRepuestoSubmit = async () => {
+    if (!currentOrdenId || !editarRepuestoData.idRepuesto || !currentServicioId) return;
+
+    try {
+      await ordenesService.actualizarRepuestoOrden(editarRepuestoData.idRepuesto, currentServicioId, currentOrdenId, { cantidad: editarRepuestoData.cantidad });
+      setOpenEditarRepuesto(false);
+      // Recargar repuestos
+      const response = await ordenesService.obtenerRepuestosPorServicio(currentOrdenId, currentServicioId);
+      setRepuestosOrden(response.mensaje || []);
+    } catch (error) {
+      console.error('Error actualizando repuesto:', error);
+    }
+  };
+
+  const handleEliminarRepuesto = async (repuesto: RepuestoOrden) => {
+    if (!currentOrdenId || !currentServicioId) return;
+    if (window.confirm('¿Estás seguro de que quieres eliminar este repuesto de la orden?')) {
+      try {
+        console.log('Eliminando repuesto:', repuesto);
+        console.log('Propiedades del repuesto:', Object.keys(repuesto));
+        // Usar el id del repuesto como idRepuesto, y currentServicioId del contexto
+        const idRepuesto = repuesto.idRepuesto || repuesto.id;
+        const idServicio = currentServicioId;
+        console.log('Parámetros para eliminar:', { idRepuesto, idServicio, currentOrdenId });
+        await ordenesService.eliminarRepuestoOrden(idRepuesto, idServicio, currentOrdenId);
+        console.log('Repuesto eliminado del backend');
+        // Recargar repuestos
+        const response = await ordenesService.obtenerRepuestosPorServicio(currentOrdenId, idServicio);
+        console.log('Repuestos recargados:', response.mensaje);
+        setRepuestosOrden(response.mensaje || []);
+      } catch (error) {
+        console.error('Error eliminando repuesto:', error);
+      }
     }
   };
 
@@ -575,6 +695,7 @@ const OrdenesPage: React.FC = () => {
                   <TableCell>Horas Trabajadas</TableCell>
                   <TableCell>Fecha Asignación</TableCell>
                   <TableCell>Acción</TableCell>
+                  <TableCell>Repuestos</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -587,11 +708,21 @@ const OrdenesPage: React.FC = () => {
                     <TableCell>{detalle.horasTrabajadas}</TableCell>
                     <TableCell>{detalle.fechaAsignacion ? new Date(detalle.fechaAsignacion).toLocaleString() : '-'}</TableCell>
                     <TableCell><Button size="small" onClick={() => handleEditarServicio(detalle)}>Editar</Button></TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button size="small" color="primary" onClick={() => handleVerRepuestos(currentOrdenId, detalle)}>Ver Repuestos</Button>
+                        <Button size="small" color="success" onClick={() => {
+                          const servicioEncontrado = servicios.find(s => s.tipoServicio === detalle.tipo && s.descripcion === detalle.descripcion);
+                          const idServicio = servicioEncontrado ? servicioEncontrado.id : '';
+                          handleAsignarRepuesto(currentOrdenId, idServicio);
+                        }}>Asignar Repuesto</Button>
+                      </Box>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {detalleData.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                       <Typography variant="body1" color="textSecondary">
                         No hay servicios registrados en esta orden
                       </Typography>
@@ -839,6 +970,131 @@ const OrdenesPage: React.FC = () => {
         <DialogActions>
           <Button onClick={() => setOpenEditarServicio(false)}>Cancelar</Button>
           <Button onClick={handleEditarServicioSubmit} variant="contained">Actualizar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para asignar repuesto */}
+      <Dialog open={openAsignarRepuesto} onClose={() => setOpenAsignarRepuesto(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Asignar Repuesto a Servicio en Orden</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <InputLabel>Repuesto</InputLabel>
+                <Select
+                  value={asignarRepuestoData.idRepuesto}
+                  label="Repuesto"
+                  onChange={(e) => setAsignarRepuestoData(prev => ({ ...prev, idRepuesto: e.target.value }))}
+                >
+                  {repuestos.map((repuesto) => (
+                    <MenuItem key={repuesto.id} value={repuesto.id}>
+                      {repuesto.nombre} - ${repuesto.costoUnitario}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={6}>
+              <FormControl fullWidth>
+                <InputLabel>Servicio</InputLabel>
+                <Select
+                  value={asignarRepuestoData.idServicio}
+                  label="Servicio"
+                  onChange={(e) => setAsignarRepuestoData(prev => ({ ...prev, idServicio: e.target.value }))}
+                  disabled={!!asignarRepuestoData.idServicio} // Deshabilitar si ya tiene un valor preseleccionado
+                >
+                  {servicios.map((servicio) => (
+                    <MenuItem key={servicio.id} value={servicio.id}>
+                      {servicio.tipoServicio} - {servicio.descripcion}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={6}>
+              <TextField
+                fullWidth
+                label="Cantidad"
+                type="number"
+                value={asignarRepuestoData.cantidad}
+                onChange={(e) => setAsignarRepuestoData(prev => ({ ...prev, cantidad: parseInt(e.target.value) }))}
+                required
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenAsignarRepuesto(false)}>Cancelar</Button>
+          <Button onClick={handleAsignarRepuestoSubmit} variant="contained">Asignar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para ver repuestos */}
+      <Dialog open={openVerRepuestos} onClose={() => setOpenVerRepuestos(false)} maxWidth="lg" fullWidth>
+        <DialogTitle>Repuestos en Servicio</DialogTitle>
+        <DialogContent>
+          <TableContainer component={Paper} sx={{ mt: 2 }}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nombre</TableCell>
+                  <TableCell>Costo Unitario</TableCell>
+                  <TableCell>Cantidad</TableCell>
+                  <TableCell>Acciones</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {repuestosOrden.map((repuesto) => (
+                  <TableRow key={repuesto.id}>
+                    <TableCell>{repuesto.nombre}</TableCell>
+                    <TableCell>${repuesto.costoUnitario}</TableCell>
+                    <TableCell>{repuesto.cantidad}</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Button size="small" onClick={() => handleEditarRepuesto(repuesto)}>Editar</Button>
+                        <Button size="small" color="error" onClick={() => handleEliminarRepuesto(repuesto)}>Eliminar</Button>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {repuestosOrden.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ py: 4 }}>
+                      <Typography variant="body1" color="textSecondary">
+                        No hay repuestos asignados a este servicio
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenVerRepuestos(false)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog para editar repuesto */}
+      <Dialog open={openEditarRepuesto} onClose={() => setOpenEditarRepuesto(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Editar Cantidad de Repuesto</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Cantidad"
+                type="number"
+                value={editarRepuestoData.cantidad}
+                onChange={(e) => setEditarRepuestoData(prev => ({ ...prev, cantidad: parseInt(e.target.value) }))}
+                required
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenEditarRepuesto(false)}>Cancelar</Button>
+          <Button onClick={handleEditarRepuestoSubmit} variant="contained">Actualizar</Button>
         </DialogActions>
       </Dialog>
 

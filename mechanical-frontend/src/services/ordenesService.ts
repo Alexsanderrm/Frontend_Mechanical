@@ -38,6 +38,20 @@ export interface ServicioMecanicoDTO {
   idNuevoServicio?: string;
 }
 
+export interface AsignarRepuestoDTO {
+  cantidad: number;
+}
+
+export interface RepuestoOrden {
+  id: string;
+  nombre: string;
+  costoUnitario: number;
+  cantidad: number;
+  idRepuesto: string;
+  idServicio: string;
+  idOrden: string;
+}
+
 export const ordenesService = {
   crearOrden: async (idVehiculo: string, orden: CrearOrdenDTO): Promise<ResponseDTO<string>> => {
     const response = await api.post(`/ordenes/${idVehiculo}/vehiculo`, orden);
@@ -114,6 +128,37 @@ export const ordenesService = {
   // Obtener detalle de orden
   obtenerDetalleOrden: async (idOrden: string): Promise<ResponseDTO<any[]>> => {
     const response = await api.get(`/ordenes/${idOrden}/detalle`);
+    return response.data;
+  },
+
+  // CRUD para repuestos en órdenes
+
+  // Asignar repuesto a servicio en orden (Create)
+  asignarRepuesto: async (idRepuesto: string, idServicio: string, idOrden: string, data: any): Promise<ResponseDTO<string>> => {
+    console.log('Asignando repuesto - Endpoint:', `/ordenes/${idOrden}/repuestos/${idRepuesto}/servicios/${idServicio}`);
+    console.log('Body enviado:', data);
+    const response = await api.post(`/ordenes/${idOrden}/repuestos/${idRepuesto}/servicios/${idServicio}`, data);
+    console.log('Respuesta asignar:', response);
+    return response.data;
+  },
+
+  // Obtener repuestos por servicio en orden (Read)
+  obtenerRepuestosPorServicio: async (idOrden: string, idServicio: string): Promise<ResponseDTO<RepuestoOrden[]>> => {
+    const response = await api.get(`/ordenes/${idOrden}/servicios/${idServicio}`);
+    return response.data;
+  },
+
+  // Actualizar cantidad de repuesto en orden (Update)
+  actualizarRepuestoOrden: async (idRepuesto: string, idServicio: string, idOrden: string, data: any): Promise<ResponseDTO<string>> => {
+    const response = await api.patch(`/ordenes/${idOrden}/repuestos/${idRepuesto}/servicios/${idServicio}`, data);
+    return response.data;
+  },
+
+  // Eliminar repuesto de orden (Delete)
+  eliminarRepuestoOrden: async (idRepuesto: string, idServicio: string, idOrden: string): Promise<ResponseDTO<string>> => {
+    console.log('Llamando DELETE:', `/ordenes/${idOrden}/repuestos/${idRepuesto}/servicios/${idServicio}`);
+    const response = await api.delete(`/ordenes/${idOrden}/repuestos/${idRepuesto}/servicios/${idServicio}`);
+    console.log('Respuesta DELETE:', response);
     return response.data;
   },
 };
