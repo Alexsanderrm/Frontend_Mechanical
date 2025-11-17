@@ -34,11 +34,13 @@ export interface ServicioMecanicoDTO {
   rol: string;
   horasTrabajadas: number;
   fechaAsignacion: string;
+  idNuevoMecanico?: string;
+  idNuevoServicio?: string;
 }
 
 export const ordenesService = {
   crearOrden: async (idVehiculo: string, orden: CrearOrdenDTO): Promise<ResponseDTO<string>> => {
-    const response = await api.post(`/ordenes/vehiculo/${idVehiculo}`, orden);
+    const response = await api.post(`/ordenes/${idVehiculo}/vehiculo`, orden);
     return response.data;
   },
 
@@ -47,7 +49,7 @@ export const ordenesService = {
     return response.data;
   },
 
-  actualizarOrden: async (id: string, orden: { fechaIngreso: string; fechaSalida?: string; descripcion: string }): Promise<ResponseDTO<string>> => {
+  actualizarOrden: async (id: string, orden: { fechaIngreso: string; fechaSalida?: string | null; descripcion: string; idVehiculo: string }): Promise<ResponseDTO<string>> => {
     const response = await api.put(`/ordenes/${id}`, orden);
     return response.data;
   },
@@ -69,7 +71,7 @@ export const ordenesService = {
 
   // Asignar mecánico a orden
   asignarMecanico: async (idOrden: string, idMecanico: string, rol: { rol: string }): Promise<ResponseDTO<string>> => {
-    const response = await api.post(`/ordenes/${idOrden}/mecanicos/${idMecanico}`, rol);
+    const response = await api.patch(`/ordenes/${idOrden}/mecanicos/${idMecanico}`, rol);
     return response.data;
   },
 
