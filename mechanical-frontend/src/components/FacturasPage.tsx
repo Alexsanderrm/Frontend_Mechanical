@@ -13,8 +13,9 @@ import {
   Chip,
   TextField,
   Grid,
+  IconButton,
 } from '@mui/material';
-import { Search as SearchIcon } from '@mui/icons-material';
+import { Search as SearchIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { facturasService, type Factura } from '../services/facturasService';
 
 const FacturasPage: React.FC = () => {
@@ -32,7 +33,7 @@ const FacturasPage: React.FC = () => {
     } else {
       const filtered = facturas.filter(factura =>
         factura.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        factura.idOrden.toLowerCase().includes(searchTerm.toLowerCase())
+        factura.ordenId.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredFacturas(filtered);
     }
@@ -85,6 +86,18 @@ const FacturasPage: React.FC = () => {
       }
     } catch (error) {
       console.error('Error searching facturas by cliente:', error);
+    }
+  };
+
+  const handleDeleteFactura = async (idFactura: string, idOrden: string) => {
+    if (!window.confirm('¿Estás seguro de que deseas eliminar esta factura?')) return;
+
+    try {
+      await facturasService.eliminarFactura(idFactura, idOrden);
+      loadFacturas(); // Recargar la lista
+    } catch (error) {
+      console.error('Error deleting factura:', error);
+      alert('Error al eliminar la factura');
     }
   };
 
@@ -167,19 +180,23 @@ const FacturasPage: React.FC = () => {
           <TableHead>
             <TableRow>
               <TableCell>ID Factura</TableCell>
+              <TableCell>Consecutivo</TableCell>
               <TableCell>ID Orden</TableCell>
-              <TableCell>Total</TableCell>
+              <TableCell>Impuestos</TableCell>
+              <TableCell>Valor Total</TableCell>
               <TableCell>Estado</TableCell>
               <TableCell>Fecha Emisión</TableCell>
-              <TableCell>Fecha Pago</TableCell>
+              <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {filteredFacturas.map((factura) => (
               <TableRow key={factura.id}>
                 <TableCell>{factura.id}</TableCell>
-                <TableCell>{factura.idOrden}</TableCell>
-                <TableCell>{formatCurrency(factura.total)}</TableCell>
+                <TableCell>{factura.consecutivo}</TableCell>
+                <TableCell>{factura.ordenId}</TableCell>
+                <TableCell>{formatCurrency(factura.impuestos)}</TableCell>
+                <TableCell>{formatCurrency(factura.valorTotal)}</TableCell>
                 <TableCell>
                   <Chip
                     label={factura.estado}
@@ -189,13 +206,18 @@ const FacturasPage: React.FC = () => {
                 </TableCell>
                 <TableCell>{new Date(factura.fechaEmision).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  {factura.fechaPago ? new Date(factura.fechaPago).toLocaleDateString() : 'Pendiente'}
+                  <IconButton
+                    color="error"
+                    onClick={() => handleDeleteFactura(factura.id, factura.ordenId)}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}
             {filteredFacturas.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
                   <Typography variant="body1" color="textSecondary">
                     {searchTerm ? 'No se encontraron facturas con los criterios de búsqueda' : 'No hay facturas registradas'}
                   </Typography>

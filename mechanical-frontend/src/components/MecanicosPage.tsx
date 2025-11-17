@@ -21,8 +21,9 @@ import {
   InputLabel,
   FormControl,
   Chip,
+  IconButton,
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { mecanicosService } from '../services/mecanicosService';
 import type { Mecanico, CrearMecanicoDTO } from '../services/mecanicosService';
 
@@ -196,34 +197,28 @@ const MecanicosPage: React.FC = () => {
                   ))}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    size="small"
+                  <IconButton
+                    color="primary"
                     onClick={() => handleEditar(mecanico)}
                     sx={{
-                      color: '#8B5CF6',
-                      border: '1px solid #8B5CF6',
                       '&:hover': {
                         backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                        boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)'
                       }
                     }}
                   >
-                    ⚡ Editar
-                  </Button>
-                  <Button
-                    size="small"
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton
+                    color="error"
                     onClick={() => handleEliminar(mecanico.id)}
                     sx={{
-                      color: '#A855F7',
-                      border: '1px solid #A855F7',
                       '&:hover': {
-                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                        boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
                       }
                     }}
                   >
-                    💥 Eliminar
-                  </Button>
+                    <DeleteIcon />
+                  </IconButton>
                 </TableCell>
               </TableRow>
             ))}

@@ -2,11 +2,12 @@ import api from './api';
 
 export interface Factura {
   id: string;
-  idOrden: string;
-  total: number;
+  consecutivo: string;
   estado: string;
   fechaEmision: string;
-  fechaPago?: string;
+  impuestos: number;
+  valorTotal: number;
+  ordenId: string;
 }
 
 export interface ResponseDTO<T> {
@@ -35,7 +36,13 @@ export const facturasService = {
 
   // Obtener facturas por cliente
   obtenerFacturasPorCliente: async (idCliente: string): Promise<ResponseDTO<Factura[]>> => {
-    const response = await api.get(`/facturas/${idCliente}/factura`);
+    const response = await api.get(`/facturas/${idCliente}/clientes`);
+    return response.data;
+  },
+
+  // Eliminar una factura
+  eliminarFactura: async (idFactura: string, idOrden: string): Promise<ResponseDTO<void>> => {
+    const response = await api.delete(`/facturas/${idFactura}/ordenes/${idOrden}`);
     return response.data;
   },
 };

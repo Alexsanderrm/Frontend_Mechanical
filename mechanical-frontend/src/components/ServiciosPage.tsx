@@ -20,7 +20,9 @@ import {
   Select,
   FormControl,
   InputLabel,
+  IconButton,
 } from '@mui/material';
+import { Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { serviciosService, type Servicio, type CrearServicioDTO } from '../services/serviciosService';
 
 const tipoServicioOptions = [
@@ -240,34 +242,28 @@ const ServiciosPage: React.FC = () => {
                   <TableCell sx={{ color: '#0D0D0D' }}>{servicio.fechaCreacion}</TableCell>
                   <TableCell sx={{ color: '#0D0D0D' }}>${servicio.costoUnitario.toLocaleString()}</TableCell>
                   <TableCell>
-                    <Button
-                      size="small"
+                    <IconButton
+                      color="primary"
                       onClick={() => handleEditar(servicio)}
                       sx={{
-                        color: '#8B5CF6',
-                        border: '1px solid #8B5CF6',
                         '&:hover': {
                           backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                          boxShadow: '0 0 10px rgba(139, 92, 246, 0.4)'
                         }
                       }}
                     >
-                      ⚡ Editar
-                    </Button>
-                    <Button
-                      size="small"
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton
+                      color="error"
                       onClick={() => handleEliminar(servicio.id)}
                       sx={{
-                        color: '#A855F7',
-                        border: '1px solid #A855F7',
                         '&:hover': {
-                          backgroundColor: 'rgba(168, 85, 247, 0.1)',
-                          boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
+                          backgroundColor: 'rgba(244, 67, 54, 0.1)',
                         }
                       }}
                     >
-                      💥 Eliminar
-                    </Button>
+                      <DeleteIcon />
+                    </IconButton>
                   </TableCell>
                 </TableRow>
               ))

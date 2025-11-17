@@ -73,6 +73,12 @@ export const ordenesService = {
     return response.data;
   },
 
+  // Finalizar orden (crea factura internamente)
+  finalizarOrden: async (idOrden: string): Promise<ResponseDTO<string>> => {
+    const response = await api.patch(`/ordenes/${idOrden}`);
+    return response.data;
+  },
+
   obtenerTodasLasOrdenes: async (): Promise<ResponseDTO<Orden[]>> => {
     const response = await api.get('/ordenes');
     return response.data;

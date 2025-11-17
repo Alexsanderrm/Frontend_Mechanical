@@ -21,8 +21,9 @@ import {
   Select,
   MenuItem,
   Chip,
+  IconButton,
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, CheckCircle as CheckCircleIcon } from '@mui/icons-material';
 import { ordenesService, type DiagnosticoDTO, type RepuestoOrden } from '../services/ordenesService';
 import { mecanicosService } from '../services/mecanicosService';
 import { serviciosService } from '../services/serviciosService';
@@ -456,6 +457,19 @@ const OrdenesPage: React.FC = () => {
     }
   };
 
+  const handleFinalizarOrden = async (id: string) => {
+    if (window.confirm('¿Estás seguro de que quieres finalizar esta orden? Esto creará la factura correspondiente.')) {
+      try {
+        await ordenesService.finalizarOrden(id);
+        loadOrdenes();
+        alert('Orden finalizada exitosamente. La factura ha sido creada.');
+      } catch (error) {
+        console.error('Error finalizando orden:', error);
+        alert('Error al finalizar la orden.');
+      }
+    }
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -524,7 +538,10 @@ const OrdenesPage: React.FC = () => {
                     <Button size="small" color="info" onClick={() => handleVerDetalle(orden.id)}>Ver Detalles</Button>
                     <Button size="small" color="warning" onClick={() => handleVerMecanicos(orden.id)}>Ver Mecánicos</Button>
                     <Button size="small" color="success" onClick={() => handleRegistrarServicio(orden.id)}>Registrar Servicio</Button>
-                    <Button size="small" color="error" onClick={() => handleEliminar(orden.id)}>Eliminar</Button>
+                    <Button size="small" color="success" startIcon={<CheckCircleIcon />} onClick={() => handleFinalizarOrden(orden.id)} disabled={orden.estado === 'FINALIZADA'}>Finalizar Orden</Button>
+                    <IconButton color="error" onClick={() => handleEliminar(orden.id)} size="small">
+                      <DeleteIcon />
+                    </IconButton>
                   </Box>
                 </TableCell>
               </TableRow>
@@ -839,7 +856,11 @@ const OrdenesPage: React.FC = () => {
                     <TableCell>{mecanico.email}</TableCell>
                     <TableCell>{mecanico.experiencia} años</TableCell>
                     <TableCell>{mecanico.rolDTO.rol}</TableCell>
-                    <TableCell><Button size="small" color="error" onClick={() => handleEliminarMecanico(mecanico.id)}>Eliminar</Button></TableCell>
+                    <TableCell>
+                      <IconButton color="error" onClick={() => handleEliminarMecanico(mecanico.id)} size="small">
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
                   </TableRow>
                 ))}
                 {mecanicosAsignados.length === 0 && (
@@ -1052,7 +1073,9 @@ const OrdenesPage: React.FC = () => {
                     <TableCell>
                       <Box sx={{ display: 'flex', gap: 1 }}>
                         <Button size="small" onClick={() => handleEditarRepuesto(repuesto)}>Editar</Button>
-                        <Button size="small" color="error" onClick={() => handleEliminarRepuesto(repuesto)}>Eliminar</Button>
+                        <IconButton color="error" onClick={() => handleEliminarRepuesto(repuesto)} size="small">
+                          <DeleteIcon />
+                        </IconButton>
                       </Box>
                     </TableCell>
                   </TableRow>
