@@ -17,6 +17,7 @@ import {
   Engineering as EngineeringIcon,
   Assessment as AssessmentIcon,
   Business as BusinessIcon,
+  Inventory as InventoryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { ordenesService, type Orden } from '../services/ordenesService';
@@ -36,7 +37,6 @@ const Dashboard: React.FC = () => {
     { title: 'Clientes', value: '150', icon: <PeopleIcon />, color: '#42628C' },
     { title: 'Vehículos', value: '200', icon: <CarIcon />, color: '#059669' },
     { title: 'Órdenes Activas', value: ordenes.filter(o => o.estado === 'EN_PROCESO').length.toString(), icon: <BuildIcon />, color: '#dc2626' },
-    { title: 'Facturas del Mes', value: '85', icon: <ReceiptIcon />, color: '#7c3aed' },
   ];
 
   useEffect(() => {
@@ -288,75 +288,28 @@ const Dashboard: React.FC = () => {
               Ver Reportes
             </Button>
           </Grid>
+          <Grid item xs={12} sm={6} md={4}>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<InventoryIcon />}
+              onClick={() => navigate('/repuestos')}
+              sx={{
+                py: 2,
+                borderColor: '#10b981',
+                color: '#10b981',
+                '&:hover': {
+                  borderColor: '#059669',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                },
+              }}
+            >
+              Gestionar Repuestos
+            </Button>
+          </Grid>
         </Grid>
       </Box>
 
-      {/* Órdenes Recientes */}
-      <Box sx={{ mt: 6 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-          <Typography variant="h5" component="h2" sx={{ color: '#1A2A40', fontWeight: 600 }}>
-            Órdenes Recientes
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setOpen(true)}
-            sx={{
-              backgroundColor: '#42628C',
-              '&:hover': {
-                backgroundColor: '#253C59',
-              },
-            }}
-          >
-            Nueva Orden
-          </Button>
-        </Box>
-
-        <TableContainer component={Paper} sx={{ borderRadius: 2 }}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ backgroundColor: '#f8fafc' }}>
-                <TableCell sx={{ fontWeight: 600, color: '#374151' }}>ID</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Descripción</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Cliente</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Vehículo</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Estado</TableCell>
-                <TableCell sx={{ fontWeight: 600, color: '#374151' }}>Acciones</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {ordenes.slice(0, 5).map((orden) => (
-                <TableRow key={orden.id} hover>
-                  <TableCell>{orden.id}</TableCell>
-                  <TableCell>{orden.descripcion}</TableCell>
-                  <TableCell>Cliente {orden.idCliente}</TableCell>
-                  <TableCell>Vehículo {orden.idVehiculo}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={orden.estado}
-                      size="small"
-                      sx={{
-                        backgroundColor: orden.estado === 'EN_PROCESO' ? '#dc2626' :
-                                        orden.estado === 'COMPLETADA' ? '#059669' : '#f59e0b',
-                        color: 'white',
-                        fontWeight: 500,
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Button size="small" startIcon={<EditIcon />} sx={{ mr: 1 }}>
-                      Editar
-                    </Button>
-                    <Button size="small" startIcon={<DeleteIcon />} color="error">
-                      Eliminar
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
 
       {/* Modal para Nueva Orden - Temporarily removed for modern design */}
 

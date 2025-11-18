@@ -268,86 +268,6 @@ const ReportesPage: React.FC = () => {
         Genere reportes en formato PDF para análisis y documentación
       </Typography>
 
-      {/* Panel de Estadísticas */}
-      <Grid container spacing={3} sx={{ mb: 6 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: 3,
-            p: 3,
-            textAlign: 'center'
-          }}>
-            <Typography variant="h4" sx={{ color: '#8B5CF6', fontWeight: 700, mb: 1 }}>
-              $45,230
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#A1A1AA', mb: 1 }}>
-              💰 Ingresos Totales
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#A855F7', fontWeight: 600 }}>
-              +12.5% vs mes anterior
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)',
-            border: '1px solid rgba(168, 85, 247, 0.3)',
-            borderRadius: 3,
-            p: 3,
-            textAlign: 'center'
-          }}>
-            <Typography variant="h4" sx={{ color: '#A855F7', fontWeight: 700, mb: 1 }}>
-              1,247
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#A1A1AA', mb: 1 }}>
-              👥 Clientes Atendidos
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#C084FC', fontWeight: 600 }}>
-              +8.3% vs mes anterior
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%)',
-            border: '1px solid rgba(139, 92, 246, 0.3)',
-            borderRadius: 3,
-            p: 3,
-            textAlign: 'center'
-          }}>
-            <Typography variant="h4" sx={{ color: '#8B5CF6', fontWeight: 700, mb: 1 }}>
-              89
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#A1A1AA', mb: 1 }}>
-              🔧 Órdenes Completadas
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#A855F7', fontWeight: 600 }}>
-              +15.2% vs mes anterior
-            </Typography>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{
-            background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%)',
-            border: '1px solid rgba(168, 85, 247, 0.3)',
-            borderRadius: 3,
-            p: 3,
-            textAlign: 'center'
-          }}>
-            <Typography variant="h4" sx={{ color: '#A855F7', fontWeight: 700, mb: 1 }}>
-              4.8
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#A1A1AA', mb: 1 }}>
-              ⭐ Calificación Promedio
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#C084FC', fontWeight: 600 }}>
-              +0.3 vs mes anterior
-            </Typography>
-          </Card>
-        </Grid>
-      </Grid>
-
       {/* Reportes Disponibles */}
       <Typography variant="h5" sx={{ mb: 3, color: '#FFFFFF', fontWeight: 600 }}>
         📄 Reportes Disponibles
@@ -533,17 +453,8 @@ const ReportesPage: React.FC = () => {
         <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
           • Use "Descargar" para guardar el PDF directamente en su dispositivo
         </Typography>
-        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
+        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 0 }}>
           • Los reportes que requieren ID necesitan que especifique el identificador correspondiente
-        </Typography>
-        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
-          • Reportes intermedios incluyen cálculos como sumas y promedios
-        </Typography>
-        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 0 }}>
-          • Reportes complejos usan subconsultas para datos relacionados entre tablas
-        </Typography>
-        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 0 }}>
-          • Asegúrese de que el backend esté ejecutándose para generar los reportes
         </Typography>
       </Box>
     </Box>
