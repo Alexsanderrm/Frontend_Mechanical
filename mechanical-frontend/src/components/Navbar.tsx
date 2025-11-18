@@ -1,7 +1,8 @@
 import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, IconButton } from '@mui/material';
-import { Menu as MenuIcon } from '@mui/icons-material';
+import { Menu as MenuIcon, Logout as LogoutIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -9,6 +10,7 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   return (
     <AppBar position="static" elevation={0}>
@@ -210,6 +212,27 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           >
             Reportes
           </Button>
+          <IconButton
+            color="inherit"
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+            sx={{
+              borderRadius: 6,
+              px: 2,
+              py: 1,
+              fontWeight: 500,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+            title="Cerrar Sesión"
+          >
+            <LogoutIcon />
+          </IconButton>
         </Box>
       </Toolbar>
     </AppBar>

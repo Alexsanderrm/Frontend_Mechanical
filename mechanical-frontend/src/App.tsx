@@ -1,10 +1,11 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Container, Box } from '@mui/material';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import LandingPage from './components/LandingPage';
+import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import ClientesPage from './components/ClientesPage';
 import OrdenesPage from './components/OrdenesPage';
@@ -16,6 +17,7 @@ import MecanicosPage from './components/MecanicosPage';
 import FacturasPage from './components/FacturasPage';
 import ReportesPage from './components/ReportesPage';
 import { useState } from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const theme = createTheme({
   palette: {
@@ -207,8 +209,14 @@ const theme = createTheme({
   },
 });
 
-function App() {
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <>{children}</> : <Navigate to="/" />;
+};
+
+function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
 
   return (
     <ThemeProvider theme={theme}>
@@ -226,9 +234,9 @@ function App() {
           overflow: 'auto',
         }}>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={isAuthenticated ? <Navigate to="/dashboard" /> : <LoginPage />} />
             <Route path="/dashboard" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -240,10 +248,10 @@ function App() {
                     <Dashboard />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/clientes" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -255,10 +263,10 @@ function App() {
                     <ClientesPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/ordenes" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -270,10 +278,10 @@ function App() {
                     <OrdenesPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/vehiculos" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -285,10 +293,10 @@ function App() {
                     <VehiculosPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/proveedores" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -300,10 +308,10 @@ function App() {
                     <ProveedoresPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/repuestos" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -315,10 +323,10 @@ function App() {
                     <RepuestosPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/servicios" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -330,10 +338,10 @@ function App() {
                     <ServiciosPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/mecanicos" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -345,10 +353,10 @@ function App() {
                     <MecanicosPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/facturas" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -360,10 +368,10 @@ function App() {
                     <FacturasPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
             <Route path="/reportes" element={
-              <>
+              <ProtectedRoute>
                 <Navbar onMenuClick={() => setSidebarOpen(true)} />
                 <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <Box sx={{
@@ -375,12 +383,20 @@ function App() {
                     <ReportesPage />
                   </Container>
                 </Box>
-              </>
+              </ProtectedRoute>
             } />
           </Routes>
         </Box>
       </Router>
     </ThemeProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
