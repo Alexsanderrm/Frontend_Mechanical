@@ -17,12 +17,16 @@ import {
   TextField,
   Grid,
   IconButton,
+  Autocomplete,
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { vehiculosService } from '../services/vehiculosService';
+import { clientesService } from '../services/clientesService';
+import type { Cliente } from '../services/clientesService';
 
 const VehiculosPage: React.FC = () => {
   const [vehiculos, setVehiculos] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [open, setOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedVehiculoId, setSelectedVehiculoId] = useState<string | null>(null);
@@ -37,6 +41,7 @@ const VehiculosPage: React.FC = () => {
 
   useEffect(() => {
     loadVehiculos();
+    loadClientes();
   }, []);
 
   const loadVehiculos = async () => {
@@ -48,6 +53,18 @@ const VehiculosPage: React.FC = () => {
       setVehiculos(response.mensaje);
     } catch (error) {
       console.error('Error loading vehiculos:', error);
+    }
+  };
+
+  const loadClientes = async () => {
+    try {
+      const response = await clientesService.obtenerClientes();
+      if (response.error) {
+        throw new Error('Error al obtener clientes');
+      }
+      setClientes(response.mensaje);
+    } catch (error) {
+      console.error('Error loading clientes:', error);
     }
   };
 
@@ -268,13 +285,22 @@ const VehiculosPage: React.FC = () => {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
+              <Autocomplete
                 fullWidth
-                label="ID del Cliente"
-                value={formData.idCliente}
-                onChange={(e) => handleInputChange('idCliente', e.target.value)}
-                required
-                helperText="ID del cliente propietario del vehículo"
+                options={clientes}
+                getOptionLabel={(option) => `${option.nombre1} ${option.apellido1}${option.nombre2 ? ' ' + option.nombre2 : ''}${option.apellido2 ? ' ' + option.apellido2 : ''}`}
+                value={clientes.find(c => c.id === formData.idCliente) || null}
+                onChange={(event, newValue) => {
+                  handleInputChange('idCliente', newValue ? newValue.id : '');
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Cliente Propietario"
+                    required
+                    helperText="Selecciona el cliente propietario del vehículo"
+                  />
+                )}
               />
             </Grid>
           </Grid>

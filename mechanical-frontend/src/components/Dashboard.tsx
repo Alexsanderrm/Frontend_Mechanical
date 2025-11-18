@@ -20,14 +20,20 @@ import {
   Inventory as InventoryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState({
+    clientes: 0,
+    vehiculos: 0,
+    ordenes: 0,
+  });
 
   const stats = [
-    { title: 'Clientes', value: '150', icon: <PeopleIcon />, color: '#42628C' },
-    { title: 'Vehículos', value: '200', icon: <CarIcon />, color: '#059669' },
-    { title: 'Órdenes Activas', value: '12', icon: <BuildIcon />, color: '#dc2626' },
+    { title: 'Clientes', value: dashboardData.clientes.toString(), icon: <PeopleIcon />, color: '#42628C' },
+    { title: 'Vehículos', value: dashboardData.vehiculos.toString(), icon: <CarIcon />, color: '#059669' },
+    { title: 'Órdenes Activas', value: dashboardData.ordenes.toString(), icon: <BuildIcon />, color: '#dc2626' },
   ];
 
 
