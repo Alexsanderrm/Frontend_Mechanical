@@ -22,6 +22,8 @@ import { reportesService } from '../services/reportesService';
 const ReportesPage: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [reportIds, setReportIds] = useState<{ [key: string]: string }>({});
+  const [fechaInicio, setFechaInicio] = useState<string>('');
+  const [fechaFin, setFechaFin] = useState<string>('');
 
   const reportes = [
     {
@@ -93,7 +95,6 @@ const ReportesPage: React.FC = () => {
       icono: <ReportIcon fontSize="large" />,
       color: '#f44336',
       requiereId: true,
-      placeholder: 'Fecha Inicio - Fecha Fin (YYYY-MM-DD - YYYY-MM-DD)',
     },
     {
       id: 'mecanicos-pendientes',
@@ -147,16 +148,13 @@ const ReportesPage: React.FC = () => {
           blob = await reportesService.generarReporteOrdenesPorRepuesto(id);
           break;
         case 'facturas-fechas':
-          if (!id) {
-            alert('Por favor ingrese el rango de fechas');
-            return;
-          }
-          const [fechaInicio, fechaFin] = id.split(' - ');
           if (!fechaInicio || !fechaFin) {
-            alert('Formato incorrecto. Use YYYY-MM-DD - YYYY-MM-DD');
+            alert('Por favor seleccione ambas fechas');
             return;
           }
-          blob = await reportesService.generarReporteFacturasPorFechas(fechaInicio, fechaFin);
+          const fechaInicioISO = `${fechaInicio}T00:00:00`;
+          const fechaFinISO = `${fechaFin}T23:59:59`;
+          blob = await reportesService.generarReporteFacturasPorFechas(fechaInicioISO, fechaFinISO);
           break;
         case 'mecanicos-pendientes':
           blob = await reportesService.generarReporteMecanicosPendientes();
@@ -222,16 +220,13 @@ const ReportesPage: React.FC = () => {
           blob = await reportesService.generarReporteOrdenesPorRepuesto(id);
           break;
         case 'facturas-fechas':
-          if (!id) {
-            alert('Por favor ingrese el rango de fechas');
-            return;
-          }
-          const [fechaInicio, fechaFin] = id.split(' - ');
           if (!fechaInicio || !fechaFin) {
-            alert('Formato incorrecto. Use YYYY-MM-DD - YYYY-MM-DD');
+            alert('Por favor seleccione ambas fechas');
             return;
           }
-          blob = await reportesService.generarReporteFacturasPorFechas(fechaInicio, fechaFin);
+          const fechaInicioISO = `${fechaInicio}T00:00:00`;
+          const fechaFinISO = `${fechaFin}T23:59:59`;
+          blob = await reportesService.generarReporteFacturasPorFechas(fechaInicioISO, fechaFinISO);
           break;
         case 'mecanicos-pendientes':
           blob = await reportesService.generarReporteMecanicosPendientes();
@@ -393,7 +388,7 @@ const ReportesPage: React.FC = () => {
                 <Typography variant="body2" sx={{ color: '#A1A1AA', mb: 2, lineHeight: 1.5 }}>
                   {reporte.descripcion}
                 </Typography>
-                {reporte.requiereId && (
+                {reporte.requiereId && reporte.id !== 'facturas-fechas' && (
                   <>
                     <TextField
                       fullWidth
@@ -405,6 +400,46 @@ const ReportesPage: React.FC = () => {
                     />
                     <Chip
                       label="Requiere ID"
+                      size="small"
+                      sx={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        color: '#F59E0B',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        fontWeight: 600
+                      }}
+                    />
+                  </>
+                )}
+                {reporte.id === 'facturas-fechas' && (
+                  <>
+                    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                      <TextField
+                        label="Fecha Inicio"
+                        type="date"
+                        value={fechaInicio}
+                        onChange={(e) => setFechaInicio(e.target.value)}
+                        size="small"
+                        fullWidth
+                        sx={{ flex: 1 }}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                      <TextField
+                        label="Fecha Fin"
+                        type="date"
+                        value={fechaFin}
+                        onChange={(e) => setFechaFin(e.target.value)}
+                        size="small"
+                        fullWidth
+                        sx={{ flex: 1 }}
+                        InputLabelProps={{
+                          shrink: true,
+                        }}
+                      />
+                    </Box>
+                    <Chip
+                      label="Requiere Fechas"
                       size="small"
                       sx={{
                         backgroundColor: 'rgba(245, 158, 11, 0.2)',

@@ -72,7 +72,10 @@ export const reportesService = {
 
   // Reporte 9 (Complejo): Facturas en un rango de fechas con detalles de órdenes
   generarReporteFacturasPorFechas: async (fechaInicio: string, fechaFin: string): Promise<Blob> => {
-    const response = await api.get(`/reportes/facturas-fechas/${fechaInicio}/${fechaFin}/pdf`, {
+    const response = await api.post('/reportes/facturas-fechas/pdf', {
+      fechaInicio,
+      fechaFin,
+    }, {
       responseType: 'blob',
     });
     return response.data;
