@@ -36,6 +36,22 @@ const Dashboard: React.FC = () => {
     { title: 'Órdenes Activas', value: dashboardData.ordenes.toString(), icon: <BuildIcon />, color: '#dc2626' },
   ];
 
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      const response = await api.get('/dashboard');
+      if (response.data.error) {
+        throw new Error('Error al obtener datos del dashboard');
+      }
+      setDashboardData(response.data.mensaje);
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    }
+  };
+
 
   return (
     <div style={{ width: '100%', padding: '24px', fontFamily: 'Arial, sans-serif' }}>
