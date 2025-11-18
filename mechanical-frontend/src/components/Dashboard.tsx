@@ -20,54 +20,16 @@ import {
   Inventory as InventoryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { ordenesService, type Orden } from '../services/ordenesService';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [ordenes, setOrdenes] = useState<Orden[]>([]);
-  const [open, setOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    descripcion: '',
-    estado: 'PENDIENTE',
-    clienteId: '',
-    vehiculoId: '',
-  });
 
   const stats = [
     { title: 'Clientes', value: '150', icon: <PeopleIcon />, color: '#42628C' },
     { title: 'Vehículos', value: '200', icon: <CarIcon />, color: '#059669' },
-    { title: 'Órdenes Activas', value: ordenes.filter(o => o.estado === 'EN_PROCESO').length.toString(), icon: <BuildIcon />, color: '#dc2626' },
+    { title: 'Órdenes Activas', value: '12', icon: <BuildIcon />, color: '#dc2626' },
   ];
 
-  useEffect(() => {
-    loadOrdenes();
-  }, []);
-
-  const loadOrdenes = async () => {
-    try {
-      // Por ahora usamos datos mock ya que no tenemos endpoint para listar todas las órdenes
-      setOrdenes([
-        {
-          id: '1',
-          descripcion: 'Cambio de aceite y filtros',
-          estado: 'EN_PROCESO',
-          fechaCreacion: '2024-01-15',
-          idCliente: '1',
-          idVehiculo: '1',
-        },
-        {
-          id: '2',
-          descripcion: 'Reparación de frenos',
-          estado: 'PENDIENTE',
-          fechaCreacion: '2024-01-14',
-          idCliente: '2',
-          idVehiculo: '2',
-        },
-      ]);
-    } catch (error) {
-      console.error('Error loading ordenes:', error);
-    }
-  };
 
   return (
     <div style={{ width: '100%', padding: '24px', fontFamily: 'Arial, sans-serif' }}>
