@@ -8,6 +8,7 @@ import {
   CardContent,
   CardActions,
   Chip,
+  TextField,
 } from '@mui/material';
 import {
   Description as ReportIcon,
@@ -20,6 +21,7 @@ import { reportesService } from '../services/reportesService';
 
 const ReportesPage: React.FC = () => {
   const [loading, setLoading] = useState<string | null>(null);
+  const [reportIds, setReportIds] = useState<{ [key: string]: string }>({});
 
   const reportes = [
     {
@@ -61,10 +63,49 @@ const ReportesPage: React.FC = () => {
       requiereId: true,
       placeholder: 'ID del Cliente',
     },
+    {
+      id: 'ingresos',
+      titulo: 'Reporte de Ingresos',
+      descripcion: 'Ingresos totales por órdenes finalizadas con cálculos de sumas',
+      icono: <ReportIcon fontSize="large" />,
+      color: '#2e7d32',
+    },
+    {
+      id: 'promedio-horas',
+      titulo: 'Promedio de Horas por Mecánico',
+      descripcion: 'Promedio de horas trabajadas por cada mecánico',
+      icono: <PeopleIcon fontSize="large" />,
+      color: '#ff9800',
+    },
+    {
+      id: 'ordenes-repuesto',
+      titulo: 'Órdenes por Repuesto',
+      descripcion: 'Órdenes que incluyen un repuesto específico (subconsultas)',
+      icono: <ShoppingCartIcon fontSize="large" />,
+      color: '#9c27b0',
+      requiereId: true,
+      placeholder: 'ID del Repuesto',
+    },
+    {
+      id: 'facturas-fechas',
+      titulo: 'Facturas por Rango de Fechas',
+      descripcion: 'Facturas en un rango de fechas con detalles de órdenes (subconsultas)',
+      icono: <ReportIcon fontSize="large" />,
+      color: '#f44336',
+      requiereId: true,
+      placeholder: 'Fecha Inicio - Fecha Fin (YYYY-MM-DD - YYYY-MM-DD)',
+    },
+    {
+      id: 'mecanicos-pendientes',
+      titulo: 'Mecánicos con Órdenes Pendientes',
+      descripcion: 'Mecánicos con órdenes pendientes y repuestos asignados (subconsultas)',
+      icono: <PeopleIcon fontSize="large" />,
+      color: '#607d8b',
+    },
   ];
 
-  const handleGenerarReporte = async (reporteId: string, id?: string) => {
-    setLoading(reporteId);
+  const handlePrevisualizarReporte = async (reporteId: string, id?: string) => {
+    setLoading(`${reporteId}-preview`);
     try {
       let blob: Blob;
 
@@ -91,6 +132,109 @@ const ReportesPage: React.FC = () => {
             return;
           }
           blob = await reportesService.generarReporteOrdenesPorCliente(id);
+          break;
+        case 'ingresos':
+          blob = await reportesService.generarReporteIngresos();
+          break;
+        case 'promedio-horas':
+          blob = await reportesService.generarReportePromedioHoras();
+          break;
+        case 'ordenes-repuesto':
+          if (!id) {
+            alert('Por favor ingrese el ID del repuesto');
+            return;
+          }
+          blob = await reportesService.generarReporteOrdenesPorRepuesto(id);
+          break;
+        case 'facturas-fechas':
+          if (!id) {
+            alert('Por favor ingrese el rango de fechas');
+            return;
+          }
+          const [fechaInicio, fechaFin] = id.split(' - ');
+          if (!fechaInicio || !fechaFin) {
+            alert('Formato incorrecto. Use YYYY-MM-DD - YYYY-MM-DD');
+            return;
+          }
+          blob = await reportesService.generarReporteFacturasPorFechas(fechaInicio, fechaFin);
+          break;
+        case 'mecanicos-pendientes':
+          blob = await reportesService.generarReporteMecanicosPendientes();
+          break;
+        default:
+          throw new Error('Tipo de reporte no válido');
+      }
+
+      // Crear URL para previsualizar el PDF
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      // No revocar inmediatamente para que se pueda ver
+      setTimeout(() => window.URL.revokeObjectURL(url), 10000); // Revocar después de 10 segundos
+
+    } catch (error) {
+      console.error('Error generando reporte:', error);
+      alert('Error al generar el reporte. Verifique la consola para más detalles.');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleDescargarReporte = async (reporteId: string, id?: string) => {
+    setLoading(`${reporteId}-download`);
+    try {
+      let blob: Blob;
+
+      switch (reporteId) {
+        case 'ordenes':
+          blob = await reportesService.generarReporteOrdenes();
+          break;
+        case 'repuestos':
+          blob = await reportesService.generarReporteRepuestos();
+          break;
+        case 'servicios':
+          blob = await reportesService.generarReporteServicios();
+          break;
+        case 'mecanicos-orden':
+          if (!id) {
+            alert('Por favor ingrese el ID de la orden');
+            return;
+          }
+          blob = await reportesService.generarReporteMecanicosPorOrden(id);
+          break;
+        case 'ordenes-cliente':
+          if (!id) {
+            alert('Por favor ingrese el ID del cliente');
+            return;
+          }
+          blob = await reportesService.generarReporteOrdenesPorCliente(id);
+          break;
+        case 'ingresos':
+          blob = await reportesService.generarReporteIngresos();
+          break;
+        case 'promedio-horas':
+          blob = await reportesService.generarReportePromedioHoras();
+          break;
+        case 'ordenes-repuesto':
+          if (!id) {
+            alert('Por favor ingrese el ID del repuesto');
+            return;
+          }
+          blob = await reportesService.generarReporteOrdenesPorRepuesto(id);
+          break;
+        case 'facturas-fechas':
+          if (!id) {
+            alert('Por favor ingrese el rango de fechas');
+            return;
+          }
+          const [fechaInicio, fechaFin] = id.split(' - ');
+          if (!fechaInicio || !fechaFin) {
+            alert('Formato incorrecto. Use YYYY-MM-DD - YYYY-MM-DD');
+            return;
+          }
+          blob = await reportesService.generarReporteFacturasPorFechas(fechaInicio, fechaFin);
+          break;
+        case 'mecanicos-pendientes':
+          blob = await reportesService.generarReporteMecanicosPendientes();
           break;
         default:
           throw new Error('Tipo de reporte no válido');
@@ -250,45 +394,87 @@ const ReportesPage: React.FC = () => {
                   {reporte.descripcion}
                 </Typography>
                 {reporte.requiereId && (
-                  <Chip
-                    label="Requiere ID"
-                    size="small"
-                    sx={{
-                      backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                      color: '#F59E0B',
-                      border: '1px solid rgba(245, 158, 11, 0.3)',
-                      fontWeight: 600
-                    }}
-                  />
+                  <>
+                    <TextField
+                      fullWidth
+                      label={reporte.placeholder}
+                      value={reportIds[reporte.id] || ''}
+                      onChange={(e) => setReportIds(prev => ({ ...prev, [reporte.id]: e.target.value }))}
+                      size="small"
+                      sx={{ mb: 2 }}
+                    />
+                    <Chip
+                      label="Requiere ID"
+                      size="small"
+                      sx={{
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        color: '#F59E0B',
+                        border: '1px solid rgba(245, 158, 11, 0.3)',
+                        fontWeight: 600
+                      }}
+                    />
+                  </>
                 )}
               </CardContent>
               <CardActions sx={{ p: 3, pt: 0 }}>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<ReportIcon />}
-                  onClick={() => handleGenerarReporte(reporte.id)}
-                  disabled={loading === reporte.id}
-                  sx={{
-                    background: `linear-gradient(45deg, ${reporte.color} 30%, ${reporte.color}CC 90%)`,
-                    borderRadius: 2,
-                    py: 1.5,
-                    fontWeight: 600,
-                    textTransform: 'none',
-                    boxShadow: `0 4px 15px ${reporte.color}40`,
-                    '&:hover': {
-                      background: `linear-gradient(45deg, ${reporte.color}CC 30%, ${reporte.color} 90%)`,
-                      transform: 'translateY(-2px)',
-                      boxShadow: `0 6px 20px ${reporte.color}60`
-                    },
-                    '&:disabled': {
-                      background: '#374151',
-                      color: '#6B7280'
-                    }
-                  }}
-                >
-                  {loading === reporte.id ? 'Generando...' : 'Generar PDF'}
-                </Button>
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Button
+                      fullWidth
+                      variant="outlined"
+                      startIcon={<ReportIcon />}
+                      onClick={() => handlePrevisualizarReporte(reporte.id, reportIds[reporte.id])}
+                      disabled={loading === `${reporte.id}-preview`}
+                      sx={{
+                        borderColor: reporte.color,
+                        color: reporte.color,
+                        borderRadius: 2,
+                        py: 1.5,
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        '&:hover': {
+                          borderColor: reporte.color,
+                          backgroundColor: `${reporte.color}20`,
+                          transform: 'translateY(-2px)'
+                        },
+                        '&:disabled': {
+                          borderColor: '#374151',
+                          color: '#6B7280'
+                        }
+                      }}
+                    >
+                      {loading === `${reporte.id}-preview` ? 'Cargando...' : 'Previsualizar'}
+                    </Button>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      startIcon={<ReportIcon />}
+                      onClick={() => handleDescargarReporte(reporte.id, reportIds[reporte.id])}
+                      disabled={loading === `${reporte.id}-download`}
+                      sx={{
+                        background: `linear-gradient(45deg, ${reporte.color} 30%, ${reporte.color}CC 90%)`,
+                        borderRadius: 2,
+                        py: 1.5,
+                        fontWeight: 600,
+                        textTransform: 'none',
+                        boxShadow: `0 4px 15px ${reporte.color}40`,
+                        '&:hover': {
+                          background: `linear-gradient(45deg, ${reporte.color}CC 30%, ${reporte.color} 90%)`,
+                          transform: 'translateY(-2px)',
+                          boxShadow: `0 6px 20px ${reporte.color}60`
+                        },
+                        '&:disabled': {
+                          background: '#374151',
+                          color: '#6B7280'
+                        }
+                      }}
+                    >
+                      {loading === `${reporte.id}-download` ? 'Descargando...' : 'Descargar'}
+                    </Button>
+                  </Grid>
+                </Grid>
               </CardActions>
             </Card>
           </Grid>
@@ -307,10 +493,19 @@ const ReportesPage: React.FC = () => {
           📋 Información de Reportes
         </Typography>
         <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
-          • Los reportes se generan en formato PDF y se descargan automáticamente
+          • Use "Previsualizar" para ver el PDF en una nueva pestaña antes de descargarlo
+        </Typography>
+        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
+          • Use "Descargar" para guardar el PDF directamente en su dispositivo
         </Typography>
         <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
           • Los reportes que requieren ID necesitan que especifique el identificador correspondiente
+        </Typography>
+        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 2 }}>
+          • Reportes intermedios incluyen cálculos como sumas y promedios
+        </Typography>
+        <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 0 }}>
+          • Reportes complejos usan subconsultas para datos relacionados entre tablas
         </Typography>
         <Typography variant="body2" paragraph sx={{ color: '#A1A1AA', mb: 0 }}>
           • Asegúrese de que el backend esté ejecutándose para generar los reportes

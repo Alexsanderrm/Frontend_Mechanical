@@ -721,7 +721,7 @@ const OrdenesPage: React.FC = () => {
                     <TableCell>{detalle.nombre1} {detalle.nombre2} {detalle.apellido1} {detalle.apellido2}</TableCell>
                     <TableCell>{detalle.tipo} - {detalle.descripcion}</TableCell>
                     <TableCell>${detalle.costoUnitario}</TableCell>
-                    <TableCell>{detalle.rol}</TableCell>
+                    <TableCell>{detalle.rol || 'Sin rol'}</TableCell>
                     <TableCell>{detalle.horasTrabajadas}</TableCell>
                     <TableCell>{detalle.fechaAsignacion ? new Date(detalle.fechaAsignacion).toLocaleString() : '-'}</TableCell>
                     <TableCell><Button size="small" onClick={() => handleEditarServicio(detalle)}>Editar</Button></TableCell>
@@ -855,7 +855,7 @@ const OrdenesPage: React.FC = () => {
                     <TableCell>{mecanico.nombre1} {mecanico.nombre2} {mecanico.apellido1} {mecanico.apellido2}</TableCell>
                     <TableCell>{mecanico.email}</TableCell>
                     <TableCell>{mecanico.experiencia} años</TableCell>
-                    <TableCell>{mecanico.rolDTO.rol}</TableCell>
+                    <TableCell>{mecanico.rolDTO || 'Sin rol'}</TableCell>
                     <TableCell>
                       <IconButton color="error" onClick={() => handleEliminarMecanico(mecanico.id)} size="small">
                         <DeleteIcon />

@@ -45,4 +45,44 @@ export const reportesService = {
     });
     return response.data;
   },
+
+  // Reporte 6 (Intermedio): Ingresos totales por órdenes finalizadas
+  generarReporteIngresos: async (): Promise<Blob> => {
+    const response = await api.get('/reportes/ingresos/pdf', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 7 (Intermedio): Promedio de horas trabajadas por mecánico
+  generarReportePromedioHoras: async (): Promise<Blob> => {
+    const response = await api.get('/reportes/promedio-horas/pdf', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 8 (Complejo): Órdenes que incluyen un repuesto específico
+  generarReporteOrdenesPorRepuesto: async (idRepuesto: string): Promise<Blob> => {
+    const response = await api.get(`/reportes/ordenes-repuestos/${idRepuesto}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 9 (Complejo): Facturas en un rango de fechas con detalles de órdenes
+  generarReporteFacturasPorFechas: async (fechaInicio: string, fechaFin: string): Promise<Blob> => {
+    const response = await api.get(`/reportes/facturas-fechas/${fechaInicio}/${fechaFin}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Reporte 10 (Complejo): Mecánicos con órdenes pendientes y repuestos asignados
+  generarReporteMecanicosPendientes: async (): Promise<Blob> => {
+    const response = await api.get('/reportes/mecanicos-pendientes/pdf', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 };
